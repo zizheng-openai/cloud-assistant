@@ -8,19 +8,21 @@ replace github.com/stateful/runme/v3 => github.com/jlewi/runme/v3 v3.0.0-2025032
 
 require (
 	connectrpc.com/connect v1.18.1
-	connectrpc.com/cors v0.1.0
 	connectrpc.com/grpchealth v1.3.0
+	connectrpc.com/otelconnect v0.7.2
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/jlewi/monogo v0.0.0-20240918030136-e0ca1337aea4
+	github.com/openai/openai-go v0.1.0-alpha.66.0.20250320204127-9377508e45ae
 	github.com/pkg/errors v0.9.1
-	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stateful/runme/v3 v3.12.6
+	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.35.0
 	google.golang.org/grpc v1.70.0
@@ -69,6 +71,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
 	github.com/graphql-go/graphql v0.8.1 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -93,6 +96,10 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/stateful/godotenv v0.0.0-20240309032207-c7bc0b812915 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xo/dburl v0.23.3 // indirect
 	github.com/yuin/goldmark v1.7.8 // indirect
@@ -103,7 +110,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
-	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
