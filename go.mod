@@ -4,10 +4,12 @@ go 1.23.1
 
 toolchain go1.23.7
 
-replace github.com/stateful/runme/v3 => github.com/jlewi/runme/v3 v3.0.0-20250321141821-8e8024146ac4
+// Use: https://github.com/runmedev/runme/tree/seb/env-collector
+replace github.com/stateful/runme/v3 => github.com/runmedev/runme/v3 v3.12.7-0.20250328164414-751ffb5eb6bd
 
 require (
 	connectrpc.com/connect v1.18.1
+	connectrpc.com/cors v0.1.0
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/otelconnect v0.7.2
 	github.com/go-logr/logr v1.4.2
@@ -19,6 +21,7 @@ require (
 	github.com/jlewi/monogo v0.0.0-20240918030136-e0ca1337aea4
 	github.com/openai/openai-go v0.1.0-alpha.66.0.20250320204127-9377508e45ae
 	github.com/pkg/errors v0.9.1
+	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stateful/runme/v3 v3.12.6

@@ -1,8 +1,10 @@
 import { memo, useState } from 'react'
-import { Box, Button, Card } from '@radix-ui/themes'
+
 import Editor from '@monaco-editor/react'
-import Console from './Runme/Console'
+import { Box, Button, Card } from '@radix-ui/themes'
 import { v4 as uuidv4 } from 'uuid'
+
+import Console from './Runme/Console'
 
 type props = {
   value: string
@@ -78,7 +80,7 @@ function RunActionButton({
   )
 }
 
-const CommandsConsole = memo(
+const CodeConsole = memo(
   ({
     value,
     runID,
@@ -116,19 +118,34 @@ const CodeEditor = memo(
   ({
     value,
     onChange,
+    runCode,
   }: {
     value: string
     onChange: (value: string) => void
+    runCode: () => void
   }) => {
+    const [key] = useState(uuidv4())
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const editorDidMount = (_editor: any, monaco: any) => {
-      if (monaco?.editor) {
-        monaco.editor.setTheme('vs-dark')
+    const editorDidMount = (editor: any, monaco: any) => {
+      if (!monaco?.editor) {
+        return
       }
+      monaco.editor.setTheme('vs-dark')
+
+      if (!editor) {
+        return
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      editor.onKeyDown((event: any) => {
+        if (event.ctrlKey && event.keyCode === 3) {
+          runCode()
+        }
+      })
     }
     return (
       <div className="p-1 h-100px w-full">
         <Editor
+          key={key}
           height="100px"
           width="100%"
           defaultLanguage="shellscript"
@@ -152,7 +169,7 @@ function Action({ value, title }: props) {
   })
   const [exitCode, setExitCode] = useState<number | null>(null)
 
-  const handleRunClick = () => {
+  const runCode = () => {
     setExec({ value: editorValue, runID: uuidv4() })
   }
 
@@ -172,16 +189,20 @@ function Action({ value, title }: props) {
     <div>
       <Box className="w-full p-2">
         <div className="flex justify-between items-top">
-          <RunActionButton exitCode={exitCode} onClick={handleRunClick} />
+          <RunActionButton exitCode={exitCode} onClick={runCode} />
           <Card className="whitespace-nowrap overflow-hidden flex-1 ml-2">
             <div className="flex items-center m-1">
               <span>{title}</span>
             </div>
             <CodeEditor
               value={editorValue}
-              onChange={(v) => setEditorValue(v)}
+              onChange={(v) => {
+                setExitCode(null)
+                setEditorValue(v)
+              }}
+              runCode={runCode}
             />
-            <CommandsConsole
+            <CodeConsole
               key={exec.runID}
               runID={exec.runID}
               value={exec.value}
