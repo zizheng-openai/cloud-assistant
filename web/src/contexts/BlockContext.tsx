@@ -35,6 +35,7 @@ type BlockContextType = {
     }: { mimeType: string; textData: string; exitCode: number; runID: string }
   ) => void
   sendUserBlock: (text: string) => Promise<void>
+  addCodeBlock: () => void
   // Keep track of whether the input is disabled
   isInputDisabled: boolean
   isTyping: boolean
@@ -128,24 +129,23 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
     // sendOutputBlock(b)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendOutputBlock = async (block: Block) => {
-    const req: GenerateRequest = create(GenerateRequestSchema, {
-      blocks: [block],
-    })
+  // const sendOutputBlock = async (block: Block) => {
+  //   const req: GenerateRequest = create(GenerateRequestSchema, {
+  //     blocks: [block],
+  //   })
 
-    try {
-      const res = client!.generate(req)
-      for await (const r of res) {
-        for (const b of r.blocks) {
-          console.log('b', JSON.stringify(b, null, 1))
-          // updateBlock(b)
-        }
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  //   try {
+  //     const res = client!.generate(req)
+  //     for await (const r of res) {
+  //       for (const b of r.blocks) {
+  //         console.log('b', JSON.stringify(b, null, 1))
+  //         // updateBlock(b)
+  //       }
+  //     }
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
 
   const updateBlock = (block: Block) => {
     setState((prev) => {
@@ -167,6 +167,17 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
         },
       }
     })
+  }
+
+  const addCodeBlock = () => {
+    const block = create(BlockSchema, {
+      id: `code_${uuidv4()}`,
+      role: BlockRole.USER,
+      kind: BlockKind.CODE,
+      contents: '# Write your bash commands here',
+    })
+
+    updateBlock(block)
   }
 
   // sendUserBlock is a function that turns the text in the chat window into a block
@@ -238,6 +249,7 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
         useColumns,
         updateOutputBlock,
         sendUserBlock,
+        addCodeBlock,
         isInputDisabled,
         isTyping,
         runCodeBlock,

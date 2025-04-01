@@ -1,12 +1,18 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import Editor from '@monaco-editor/react'
-import { Box, Button, Card } from '@radix-ui/themes'
+import { Box, Button, Card, ScrollArea, Text } from '@radix-ui/themes'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Block, useBlock } from '../../contexts/BlockContext'
 import Console from '../Runme/Console'
-import { ErrorIcon, PlayIcon, SpinnerIcon, SuccessIcon } from './icons'
+import {
+  ErrorIcon,
+  PlayIcon,
+  PlusIcon,
+  SpinnerIcon,
+  SuccessIcon,
+} from './icons'
 
 const fontSize = 14
 const fontFamily = 'monospace'
@@ -57,7 +63,7 @@ const CodeConsole = memo(
       runID != '' && (
         <Console
           className={className}
-          rows={10}
+          rows={14}
           commands={value.split('\n')}
           fontSize={fontSize}
           fontFamily={fontFamily}
@@ -295,7 +301,7 @@ function Action({ block }: { block: Block }) {
 }
 
 function Actions() {
-  const { useColumns } = useBlock()
+  const { useColumns, addCodeBlock } = useBlock()
   const { actions } = useColumns()
 
   const actionsEndRef = useRef<HTMLDivElement | null>(null)
@@ -309,12 +315,27 @@ function Actions() {
   }, [actions])
 
   return (
-    <>
-      {actions.map((action) => (
-        <Action key={action.id} block={action} />
-      ))}
-      <div ref={actionsEndRef} className="h-1" />
-    </>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center mb-2">
+        <Text size="5" weight="bold" className="pr-2">
+          Actions
+        </Text>
+        <Button
+          variant="ghost"
+          size="1"
+          className="cursor-pointer"
+          onClick={addCodeBlock}
+        >
+          <PlusIcon />
+        </Button>
+      </div>
+      <ScrollArea type="auto" scrollbars="vertical" className="flex-1 p-2">
+        {actions.map((action) => (
+          <Action key={action.id} block={action} />
+        ))}
+        <div ref={actionsEndRef} className="h-1" />
+      </ScrollArea>
+    </div>
   )
 }
 
