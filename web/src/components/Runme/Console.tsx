@@ -91,22 +91,32 @@ function buildExecuteRequest(): ExecuteRequest {
 function Console({
   commands,
   rows = 20,
+  className,
+  fontSize = 12,
+  fontFamily = 'monospace',
   onStdout,
   onStderr,
   onExitCode,
+  onPid,
+  onMimeType,
 }: {
   commands: string[]
   rows?: number
+  className?: string
+  fontSize?: number
+  fontFamily?: string
   onStdout?: (data: Uint8Array) => void
   onStderr?: (data: Uint8Array) => void
   onExitCode?: (code: number) => void
+  onPid?: (pid: number) => void
+  onMimeType?: (mimeType: string) => void
 }) {
   const execReq = buildExecuteRequest()
   const defaults = {
     output: {
       'runme.dev/id': execReq.config?.knownId,
-      fontFamily: 'monospace',
-      fontSize: 12,
+      fontFamily: fontFamily || 'monospace',
+      fontSize: fontSize || 12,
       cursorStyle: 'block',
       cursorBlink: true,
       cursorWidth: 1,
@@ -189,6 +199,7 @@ function Console({
           onStdout(response.stdoutData)
         }
       }
+
       if (response.stderrData) {
         callback?.({
           type: ClientMessages.terminalStderr,
@@ -208,13 +219,38 @@ function Console({
           onExitCode(response.exitCode)
         }
       }
+
+      if (response.pid !== undefined) {
+        if (onPid) {
+          onPid(response.pid)
+        }
+      }
+
+      if (response.mimeType) {
+        const parts = response.mimeType.split(';')
+        const mimeType = parts[0]
+        if (onMimeType) {
+          onMimeType(mimeType)
+        }
+        // todo(sebastian): charset (usually utf8) is only applicable for text mime types
+        // const charset =
+        //   parts.length > 1 ? parts[1].split('=')[1].trim() : undefined
+      }
     }
 
     return () => {
       console.log(new Date(), 'Disconnected from WebSocket server')
       socket.close()
     }
-  }, [])
+  }, [
+    callback,
+    execReq.config,
+    onExitCode,
+    onPid,
+    onStderr,
+    onStdout,
+    onMimeType,
+  ])
 
   useEffect(() => {
     console.log('useEffect invoked - Commands changed:', commands)
@@ -235,6 +271,7 @@ function Console({
   }, [commands, execReq])
   return (
     <div
+      className={className}
       ref={(el) => {
         if (!el || el.hasChildNodes()) {
           return
@@ -303,6 +340,13 @@ function Console({
         }
 
         el.appendChild(terminalElem)
+        const terminalEnd = document.createElement('div')
+        terminalEnd.setAttribute('className', 'h-1')
+        el.appendChild(terminalEnd)
+
+        setTimeout(() => {
+          terminalEnd.scrollIntoView({ behavior: 'smooth' })
+        }, 0)
       }}
     ></div>
   )

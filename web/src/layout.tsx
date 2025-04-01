@@ -82,7 +82,7 @@ function Layout({
       {/* Main content */}
       <Flex className="w-full h-[95%] flex-1 gap-2">
         {/* Left */}
-        <Box className="flex-1 flex flex-col h-full">
+        <Box className="flex-2 flex flex-col h-full p-2 border-r border-gray-400">
           <Text size="5" weight="bold" className="mb-2">
             How can I help you?
           </Text>
@@ -92,7 +92,7 @@ function Layout({
         </Box>
 
         {/* Middle */}
-        <Box className="flex-1 flex flex-col h-full">
+        <Box className="flex-3 flex flex-col h-full p-2 border-r border-gray-400">
           <Text size="5" weight="bold" className="mb-2">
             Actions
           </Text>
@@ -102,11 +102,11 @@ function Layout({
         </Box>
 
         {/* Right */}
-        <Box className="flex-1 flex flex-col h-full">
+        <Box className="flex-1 flex flex-col h-full p-2">
           <Text size="5" weight="bold" className="mb-2">
             Files
           </Text>
-          <ScrollArea type="auto" scrollbars="vertical" className="flex-1 p-2">
+          <ScrollArea type="auto" scrollbars="vertical" className="flex-1 pt-4">
             {right}
           </ScrollArea>
         </Box>
