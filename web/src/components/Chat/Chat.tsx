@@ -246,7 +246,7 @@ const ChatInput = () => {
 }
 
 function Chat() {
-  const { useColumns, isTyping, runCodeBlock } = useBlock()
+  const { useColumns, runCodeBlock } = useBlock()
   const { chat } = useColumns()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const outerDivRef = useRef<HTMLDivElement>(null)
