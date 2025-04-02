@@ -276,8 +276,6 @@ function Chat() {
     }
   }, [chat, runCodeBlock])
 
-  if (chat.length === 0) return null
-
   return (
     <div ref={outerDivRef} className="flex flex-col h-full">
       <Text size="5" weight="bold" className="mb-2">
