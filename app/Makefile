@@ -10,20 +10,33 @@ LDFLAGS := -s -w \
         -X 'github.com/jlewi/cloud-assistant/app/pkg/version.Version=$(subst v,,$(VERSION))' \
         -X 'github.com/jlewi/cloud-assistant/app/pkg/version.Commit=$(GIT_SHA)'
 
-build: build-dir
+build: clean build-binary
+
+build-binary: build-dir
 	CGO_ENABLED=0 go build -o .build/cas -ldflags="$(LDFLAGS)" github.com/jlewi/cloud-assistant/app
 
 build-dir:
-	mkdir -p .build
+	@mkdir -p .build
+
+dist-assets:
+	@cd ../web && npm run build
+	@cp -rv ../web/dist/index.* pkg/server/dist/
+
+dist: clean dist-assets build-binary
+
+clean:
+	@rm -rf .build
+	@rm -rf pkg/server/dist
+	@git checkout -f pkg/server/dist
 
 tidy:
 	gofmt -s -w .
 	goimports -w .
-	
+
 
 lint:
 	# golangci-lint automatically searches up the root tree for configuration files.
 	golangci-lint run
 
-test:	
+test:
 	GITHUB_ACTIONS=true go test -v ./...

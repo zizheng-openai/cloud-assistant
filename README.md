@@ -86,7 +86,7 @@ To run the image
 ```bash
 docker run --mount type=bind,src=${HOME}/.cloud-assistant/config.yaml,target=/config/config.yaml \
     -it \
-    cas:latest \    
+    cas:latest \
     /cas serve --config=/config/config.yaml
 
 ```

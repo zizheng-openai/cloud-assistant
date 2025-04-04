@@ -210,14 +210,7 @@ func (s *Server) registerServices() error {
 }
 
 func (s *Server) addStaticAssets() {
-	log := zapr.NewLogger(zap.L())
-	staticAssets := s.serverConfig.StaticAssets
-	if staticAssets == "" {
-		log.Info("No static assets to serve")
-	}
-
-	log.Info("Adding static assets", "dir", staticAssets)
-	fileServer := http.FileServer(http.Dir(staticAssets))
+	fileServer := getAssetHandler(s.serverConfig.StaticAssets)
 
 	s.engine.Handle("/", fileServer)
 }
