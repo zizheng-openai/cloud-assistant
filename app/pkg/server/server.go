@@ -106,6 +106,13 @@ func (s *Server) Run() error {
 		return errors.Wrapf(err, "Failed to register services")
 	}
 
+	// Require OIDC auth if configured
+	if protectedMux, err := RequireOIDC(s.serverConfig.OIDC, s.engine); err == nil {
+		s.engine = protectedMux
+	} else {
+		log.Error(err, "Failed to require OIDC authentication")
+	}
+
 	serverConfig := s.serverConfig
 	if serverConfig == nil {
 		serverConfig = &config.AssistantServerConfig{}

@@ -334,6 +334,37 @@ type AssistantServerConfig struct {
 
 	// RunnerService starts the Runme runner service if true otherwise it doesn't start the runner service.
 	RunnerService bool `json:"runnerService" yaml:"runnerService"`
+
+	// OIDC configuration
+	OIDC *OIDCConfig `json:"oidc,omitempty" yaml:"oidc,omitempty"`
+}
+
+// OIDCConfig contains configuration for OIDC authentication
+type OIDCConfig struct {
+	// Google contains Google-specific OIDC configuration
+	Google *GoogleOIDCConfig `json:"google,omitempty" yaml:"google,omitempty"`
+
+	// Domains is a list of allowed domains for OIDC authentication
+	Domains []string `json:"domains" yaml:"domains"`
+
+	// ForceApproval is a flag to force the user to approve the app again
+	ForceApproval bool `json:"forceApproval" yaml:"forceApproval"`
+}
+
+// GoogleOIDCConfig contains Google-specific OIDC configuration
+type GoogleOIDCConfig struct {
+	// ClientCredentialsFile is the path to the file containing the Google client credentials
+	ClientCredentialsFile string `json:"clientCredentialsFile" yaml:"clientCredentialsFile"`
+	// DiscoveryURL is the URL for the OpenID Connect discovery document
+	DiscoveryURL string `json:"discoveryURL" yaml:"discoveryURL"`
+}
+
+// Add a helper method to get the discovery URL with a default
+func (c *GoogleOIDCConfig) GetDiscoveryURL() string {
+	if c.DiscoveryURL != "" {
+		return c.DiscoveryURL
+	}
+	return "https://accounts.google.com/.well-known/openid-configuration"
 }
 
 func (c *AssistantServerConfig) GetBindAddress() string {
