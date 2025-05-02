@@ -46,9 +46,6 @@ assistantServer:
                 - "openid"
                 - "email"
             issuer: https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0 # TODO: change this to your own tenant ID
-        domains:
-            - "evilcorp.com"
-            - "myemail.com"
         forceApproval: false # helpful for troubleshooting issues with OIDC
 ```
 
