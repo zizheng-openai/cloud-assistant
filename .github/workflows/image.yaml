@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+      # For testing the changes to the workflow to tag the commit and allow workflow dispatch. 
+      # We can get rid of this once we are happy with the updated workflow
+      - jlewi/oidc
+  # Allow manual triggering
+  # This allows building images from branches
+  workflow_dispatch: {}
 
 jobs:
   build-and-push:
@@ -21,10 +27,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      # GITHUB doesn't provide the short SHA automatically
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:commit-${{  env.COMMIT_SHORT_SHA }}
