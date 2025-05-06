@@ -303,18 +303,35 @@ func newAuthMiddlewareForOIDC(oidc *OIDC) (func(http.Handler) http.Handler, erro
         return
       }
 
-      // Get the session token from the cookie
-      cookie, err := r.Cookie(sessionCookieName)
-      if err != nil {
-        // No session cookie, return 401 Unauthorized
-        log.Error(err, "No session cookie found")
-        http.Error(w, "Unauthorized: No valid session", http.StatusUnauthorized)
-        return
+      var idToken string
+
+      // First check for Bearer token in Authorization header
+      bearerToken := r.Header.Get("Authorization")
+
+      // If not present in header, check the token query parameter
+      // This is useful for WebSocket connections where headers might not be available
+      if bearerToken == "" {
+        if authParam := r.URL.Query().Get("authorization"); authParam != "" {
+          bearerToken = authParam
+        }
+      }
+
+      if strings.HasPrefix(strings.ToLower(bearerToken), "bearer ") {
+        idToken = strings.TrimPrefix(bearerToken, bearerToken[:7]) // Remove prefix
+        idToken = strings.TrimSpace(idToken)
+      } else {
+        // Fallback to session cookie
+        cookie, err := r.Cookie(sessionCookieName)
+        if err != nil {
+          // No session cookie or bearer token, return 401 Unauthorized
+          log.Error(err, "No session cookie or bearer token found")
+          http.Error(w, "Unauthorized: No valid session", http.StatusUnauthorized)
+          return
+        }
+        idToken = cookie.Value
       }
 
       // Verify the token by parsing and validating the JWT
-      idToken := cookie.Value
-
       token, err := oidc.verifyToken(idToken)
       if token == nil {
         log.Error(err, "Token validation failed")
@@ -382,7 +399,7 @@ func (o *OIDC) callbackHandler(w http.ResponseWriter, r *http.Request) {
     Name:     sessionCookieName,
     Value:    idToken,
     Path:     "/",
-    HttpOnly: true,
+    HttpOnly: false,
     Secure:   true,
     SameSite: http.SameSiteLaxMode,
   })
