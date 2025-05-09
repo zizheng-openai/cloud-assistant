@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react'
 
+import { getTokenValue } from '../token'
+
 interface Settings {
   agentEndpoint: string
   runnerEndpoint: string
@@ -86,7 +88,13 @@ export const SettingsProvider = ({
       .replace('ws://', 'http://')
       .replace('wss://', 'https://')
 
-    fetch(endpoint, {
+    const endpointUrl = new URL(endpoint)
+    const token = getTokenValue()
+    if (token) {
+      endpointUrl.searchParams.set('authorization', `Bearer ${token}`)
+    }
+
+    fetch(endpointUrl.toString(), {
       method: 'HEAD',
       credentials: 'include', // Include cookies for authentication
       headers: {

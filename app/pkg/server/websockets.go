@@ -47,6 +47,13 @@ func (h *WebSocketHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == http.MethodHead {
+		// Front end issues a HEAD request to test if its authenticated
+		log.Info("HEAD request; returning 200 OK")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Error(err, "Could not upgrade to websocket")
