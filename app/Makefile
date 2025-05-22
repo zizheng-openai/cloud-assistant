@@ -36,7 +36,11 @@ tidy:
 
 lint:
 	# golangci-lint automatically searches up the root tree for configuration files.
-	golangci-lint run
+	golangci-lint run --fix
 
 test:
 	GITHUB_ACTIONS=true go test -v ./...
+
+install/pre-commit:
+	pre-commit install
+	pre-commit install --install-hooks
