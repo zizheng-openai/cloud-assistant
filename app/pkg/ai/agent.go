@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"connectrpc.com/connect"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/google/uuid"
 	"github.com/jlewi/cloud-assistant/app/pkg/config"
@@ -151,6 +152,7 @@ func (a *Agent) ProcessWithOpenAI(ctx context.Context, req *cassie.GenerateReque
 	log := logs.FromContext(ctx)
 	traceId := span.SpanContext().TraceID()
 	log = log.WithValues("traceId", traceId)
+	ctx = logr.NewContext(ctx, log)
 	log.Info("Agent.Generate")
 
 	if (len(req.Blocks)) < 1 {
