@@ -102,8 +102,7 @@ func Test_GenerateBlocks(t *testing.T) {
 	}
 
 	// Ensure there is a filesearch results block and that the filenames are set. This is intended
-	// to catch various bugs with the SDK; e.g.
-	// https://openai.slack.com/archives/C05C3578WQZ/p1741520938xxxxx5?thread_ts=1741090029.923169&cid=C05C3578WQZ
+	// to catch various bugs with the SDK;
 	hasFSBlock := false
 	for _, b := range blocks {
 		if b.Kind == cassie.BlockKind_FILE_SEARCH_RESULTS {
