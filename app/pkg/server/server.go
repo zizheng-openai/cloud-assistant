@@ -288,7 +288,7 @@ func (s *Server) registerServices() error {
 // This method is useful for testing whether a proxy (e.g. envoyproxy) is filtering out trailers.
 // If trailers are being filtered out it will prevent grpc and grpcweb from working.
 // To test it use
-// curl -k -v --http2 https://cloud-assistant.gateway.unified-0s.internal.api.openai.org/trailerstest -d ”
+// curl -k -v --http2 https://<server_url>/trailerstest -d ”
 // The output should show the trailers in the response headers.
 func trailersTest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/grpc+proto")
