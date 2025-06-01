@@ -6,9 +6,11 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/go-logr/zapr"
+	"github.com/jlewi/cloud-assistant/app/pkg/config"
 	"github.com/jlewi/cloud-assistant/app/pkg/logs"
 	"github.com/jlewi/cloud-assistant/protos/gen/cassie"
 	"github.com/jlewi/cloud-assistant/protos/gen/cassie/cassieconnect"
@@ -24,6 +26,17 @@ func AgentInference(command string) (map[string]*cassie.Block, error) {
 		return nil, err
 	}
 	return blocks, nil
+}
+
+func loadSessionCookieValue() (string, error) {
+	cfg := config.GetConfig()
+	if cfg.CloudAssistant == nil {
+		return "", errors.New("cloudAssistant config missing")
+	}
+	if cfg.CloudAssistant.SessionCookie == "" {
+		return "", errors.New("cloudAssistant.sessionCookie not set")
+	}
+	return strings.TrimSpace(cfg.CloudAssistant.SessionCookie), nil
 }
 
 func runAIClient(baseURL string) (map[string]*cassie.Block, error) {
@@ -94,10 +107,14 @@ func runAIClient(baseURL string) (map[string]*cassie.Block, error) {
 		},
 	}
 	req := connect.NewRequest(genReq)
+	cookieValue, err := loadSessionCookieValue()
+	if err != nil {
+		return blocks, errors.Wrap(err, "failed to load session cookie")
+	}
 	cookie := &http.Cookie{
 		Name:  "cassie-session",
-		Value: "",  // supply the real value here
-		Path:  "/", // adjust if needed
+		Value: cookieValue,
+		Path:  "/",
 	}
 	req.Header().Add("Cookie", cookie.String())
 	stream, err := client.Generate(ctx, req)
