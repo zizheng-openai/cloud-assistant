@@ -21,58 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// -------------------------------------------------------------------------
-// Models
-// -------------------------------------------------------------------------
-type LlModel int32
-
-const (
-	LlModel_LL_MODEL_UNSPECIFIED LlModel = 0
-	LlModel_LL_MODEL_O3          LlModel = 1
-	LlModel_LL_MODEL_GPT4_1      LlModel = 2
-)
-
-// Enum value maps for LlModel.
-var (
-	LlModel_name = map[int32]string{
-		0: "LL_MODEL_UNSPECIFIED",
-		1: "LL_MODEL_O3",
-		2: "LL_MODEL_GPT4_1",
-	}
-	LlModel_value = map[string]int32{
-		"LL_MODEL_UNSPECIFIED": 0,
-		"LL_MODEL_O3":          1,
-		"LL_MODEL_GPT4_1":      2,
-	}
-)
-
-func (x LlModel) Enum() *LlModel {
-	p := new(LlModel)
-	*p = x
-	return p
-}
-
-func (x LlModel) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (LlModel) Descriptor() protoreflect.EnumDescriptor {
-	return file_cassie_eval_proto_enumTypes[0].Descriptor()
-}
-
-func (LlModel) Type() protoreflect.EnumType {
-	return &file_cassie_eval_proto_enumTypes[0]
-}
-
-func (x LlModel) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use LlModel.Descriptor instead.
-func (LlModel) EnumDescriptor() ([]byte, []int) {
-	return file_cassie_eval_proto_rawDescGZIP(), []int{0}
-}
-
 // What we are checking for.
 type Assertion_Type int32
 
@@ -113,11 +61,11 @@ func (x Assertion_Type) String() string {
 }
 
 func (Assertion_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_cassie_eval_proto_enumTypes[1].Descriptor()
+	return file_cassie_eval_proto_enumTypes[0].Descriptor()
 }
 
 func (Assertion_Type) Type() protoreflect.EnumType {
-	return &file_cassie_eval_proto_enumTypes[1]
+	return &file_cassie_eval_proto_enumTypes[0]
 }
 
 func (x Assertion_Type) Number() protoreflect.EnumNumber {
@@ -166,11 +114,11 @@ func (x Assertion_Result) String() string {
 }
 
 func (Assertion_Result) Descriptor() protoreflect.EnumDescriptor {
-	return file_cassie_eval_proto_enumTypes[2].Descriptor()
+	return file_cassie_eval_proto_enumTypes[1].Descriptor()
 }
 
 func (Assertion_Result) Type() protoreflect.EnumType {
-	return &file_cassie_eval_proto_enumTypes[2]
+	return &file_cassie_eval_proto_enumTypes[1]
 }
 
 func (x Assertion_Result) Number() protoreflect.EnumNumber {
@@ -611,8 +559,7 @@ func (x *Assertion_FileRetrieval) GetShouldRetrieve() bool {
 type Assertion_LlmJudge struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JudgePrompt   string                 `protobuf:"bytes,1,opt,name=judge_prompt,json=judgePrompt,proto3" json:"judge_prompt,omitempty"`
-	Model         LlModel                `protobuf:"varint,2,opt,name=model,proto3,enum=LlModel" json:"model,omitempty"`
-	ShouldPass    bool                   `protobuf:"varint,3,opt,name=should_pass,json=shouldPass,proto3" json:"should_pass,omitempty"` // true = model must return “correct”
+	ShouldPass    bool                   `protobuf:"varint,2,opt,name=should_pass,json=shouldPass,proto3" json:"should_pass,omitempty"` // true = model must return “correct”
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -654,13 +601,6 @@ func (x *Assertion_LlmJudge) GetJudgePrompt() string {
 	return ""
 }
 
-func (x *Assertion_LlmJudge) GetModel() LlModel {
-	if x != nil {
-		return x.Model
-	}
-	return LlModel_LL_MODEL_UNSPECIFIED
-}
-
 func (x *Assertion_LlmJudge) GetShouldPass() bool {
 	if x != nil {
 		return x.ShouldPass
@@ -672,7 +612,7 @@ var File_cassie_eval_proto protoreflect.FileDescriptor
 
 const file_cassie_eval_proto_rawDesc = "" +
 	"\n" +
-	"\x11cassie/eval.proto\"\xd8\a\n" +
+	"\x11cassie/eval.proto\"\xb8\a\n" +
 	"\tAssertion\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0f.Assertion.TypeR\x04type\x12)\n" +
@@ -690,11 +630,10 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\rFileRetrieval\x12\x17\n" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12'\n" +
-	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1an\n" +
+	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1aN\n" +
 	"\bLlmJudge\x12!\n" +
-	"\fjudge_prompt\x18\x01 \x01(\tR\vjudgePrompt\x12\x1e\n" +
-	"\x05model\x18\x02 \x01(\x0e2\b.LlModelR\x05model\x12\x1f\n" +
-	"\vshould_pass\x18\x03 \x01(\bR\n" +
+	"\fjudge_prompt\x18\x01 \x01(\tR\vjudgePrompt\x12\x1f\n" +
+	"\vshould_pass\x18\x02 \x01(\bR\n" +
 	"shouldPass\"~\n" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
@@ -719,11 +658,7 @@ const file_cassie_eval_proto_rawDesc = "" +
 	".AssertionR\n" +
 	"assertions\"4\n" +
 	"\vEvalDataset\x12%\n" +
-	"\asamples\x18\x01 \x03(\v2\v.EvalSampleR\asamples*I\n" +
-	"\aLlModel\x12\x18\n" +
-	"\x14LL_MODEL_UNSPECIFIED\x10\x00\x12\x0f\n" +
-	"\vLL_MODEL_O3\x10\x01\x12\x13\n" +
-	"\x0fLL_MODEL_GPT4_1\x10\x02B4Z2github.com/jlewi/cloud-assistant/protos/gen/cassieb\x06proto3"
+	"\asamples\x18\x01 \x03(\v2\v.EvalSampleR\asamplesB4Z2github.com/jlewi/cloud-assistant/protos/gen/cassieb\x06proto3"
 
 var (
 	file_cassie_eval_proto_rawDescOnce sync.Once
@@ -737,35 +672,33 @@ func file_cassie_eval_proto_rawDescGZIP() []byte {
 	return file_cassie_eval_proto_rawDescData
 }
 
-var file_cassie_eval_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_cassie_eval_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_cassie_eval_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_cassie_eval_proto_goTypes = []any{
-	(LlModel)(0),                        // 0: LlModel
-	(Assertion_Type)(0),                 // 1: Assertion.Type
-	(Assertion_Result)(0),               // 2: Assertion.Result
-	(*Assertion)(nil),                   // 3: Assertion
-	(*EvalSample)(nil),                  // 4: EvalSample
-	(*EvalDataset)(nil),                 // 5: EvalDataset
-	(*Assertion_ShellRequiredFlag)(nil), // 6: Assertion.ShellRequiredFlag
-	(*Assertion_ToolInvocation)(nil),    // 7: Assertion.ToolInvocation
-	(*Assertion_FileRetrieval)(nil),     // 8: Assertion.FileRetrieval
-	(*Assertion_LlmJudge)(nil),          // 9: Assertion.LlmJudge
+	(Assertion_Type)(0),                 // 0: Assertion.Type
+	(Assertion_Result)(0),               // 1: Assertion.Result
+	(*Assertion)(nil),                   // 2: Assertion
+	(*EvalSample)(nil),                  // 3: EvalSample
+	(*EvalDataset)(nil),                 // 4: EvalDataset
+	(*Assertion_ShellRequiredFlag)(nil), // 5: Assertion.ShellRequiredFlag
+	(*Assertion_ToolInvocation)(nil),    // 6: Assertion.ToolInvocation
+	(*Assertion_FileRetrieval)(nil),     // 7: Assertion.FileRetrieval
+	(*Assertion_LlmJudge)(nil),          // 8: Assertion.LlmJudge
 }
 var file_cassie_eval_proto_depIdxs = []int32{
-	1, // 0: Assertion.type:type_name -> Assertion.Type
-	2, // 1: Assertion.result:type_name -> Assertion.Result
-	6, // 2: Assertion.shell_required_flag:type_name -> Assertion.ShellRequiredFlag
-	7, // 3: Assertion.tool_invocation:type_name -> Assertion.ToolInvocation
-	8, // 4: Assertion.file_retrieval:type_name -> Assertion.FileRetrieval
-	9, // 5: Assertion.llm_judge:type_name -> Assertion.LlmJudge
-	3, // 6: EvalSample.assertions:type_name -> Assertion
-	4, // 7: EvalDataset.samples:type_name -> EvalSample
-	0, // 8: Assertion.LlmJudge.model:type_name -> LlModel
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	0, // 0: Assertion.type:type_name -> Assertion.Type
+	1, // 1: Assertion.result:type_name -> Assertion.Result
+	5, // 2: Assertion.shell_required_flag:type_name -> Assertion.ShellRequiredFlag
+	6, // 3: Assertion.tool_invocation:type_name -> Assertion.ToolInvocation
+	7, // 4: Assertion.file_retrieval:type_name -> Assertion.FileRetrieval
+	8, // 5: Assertion.llm_judge:type_name -> Assertion.LlmJudge
+	2, // 6: EvalSample.assertions:type_name -> Assertion
+	3, // 7: EvalDataset.samples:type_name -> EvalSample
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_cassie_eval_proto_init() }
@@ -784,7 +717,7 @@ func file_cassie_eval_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cassie_eval_proto_rawDesc), len(file_cassie_eval_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      2,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
