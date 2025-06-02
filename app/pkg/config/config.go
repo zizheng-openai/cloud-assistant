@@ -76,6 +76,7 @@ type WebAppConfig struct {
 type CloudAssistantConfig struct {
 	// VectorStores is the list of vector stores to use
 	VectorStores []string `json:"vectorStores,omitempty" yaml:"vectorStores,omitempty"`
+	CassieCookie string   `json:"cassieCookie,omitempty" yaml:"cassieCookie,omitempty"`
 }
 
 type OpenAIConfig struct {
