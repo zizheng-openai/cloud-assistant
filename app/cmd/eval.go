@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/jlewi/cloud-assistant/app/pkg/ai"
 	"github.com/jlewi/cloud-assistant/app/pkg/application"
 	"github.com/spf13/cobra"
@@ -17,9 +15,6 @@ func NewEvalCmd() *cobra.Command {
 			app := application.NewApp()
 			if err := app.LoadConfig(cmd); err != nil {
 				return err
-			}
-			if app.Config.CloudAssistant == nil {
-				return fmt.Errorf("CloudAssistant config is nil")
 			}
 			app.Config.CloudAssistant.TargetURL = args[1]
 			blocks, err := ai.EvalFromProto(args[0], app.Config.CloudAssistant)
