@@ -83,3 +83,7 @@ message EvalSample {
   string            input_text  = 3;              // The assistant input to test
   repeated Assertion assertions = 4;              // Checks to run against that input
 }
+
+message EvalDataset{
+  repeated EvalSample samples = 1;
+}
