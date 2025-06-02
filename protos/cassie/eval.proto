@@ -2,14 +2,6 @@ syntax = "proto3";
 
 option go_package = "github.com/jlewi/cloud-assistant/protos/gen/cassie";
 
-// -------------------------------------------------------------------------
-// Models
-// -------------------------------------------------------------------------
-enum LlModel {
-  LL_MODEL_UNSPECIFIED = 0;
-  LL_MODEL_O3          = 1;
-  LL_MODEL_GPT4_1      = 2;
-}
 
 // -------------------------------------------------------------------------
 // Assertions
@@ -69,8 +61,7 @@ message Assertion {
   // Asks an LLM to grade the assistant’s answer.
   message LlmJudge {
     string    judge_prompt = 1;
-    LlModel   model        = 2;
-    bool      should_pass  = 3;                   // true = model must return “correct”
+    bool      should_pass  = 2;                   // true = model must return “correct”
   }
 }
 
