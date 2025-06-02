@@ -33,18 +33,18 @@ func (s shellRequiredFlag) Assert(ctx context.Context, as *cassie.Assertion, blo
 	shellFlag := as.GetShellRequiredFlag()
 	command := shellFlag.Command
 	flags := shellFlag.Flags
-	contain_command := false
-	as.Result = cassie.Assertion_RESULT_SKIPPED // default to skipped
+	contain_command := false                    // Tracks if the target command is found in any code block
+	as.Result = cassie.Assertion_RESULT_SKIPPED // Default result is SKIPPED unless the command is found
 	for _, block := range blocks {
 		if block.Kind == cassie.BlockKind_CODE {
-			if strings.Contains(block.Contents, command) {
+			if strings.Contains(block.Contents, command) { // Check if the code block contains the target command
 				if !contain_command {
 					contain_command = true
-					as.Result = cassie.Assertion_RESULT_PASSED // only activate the assertion if the command is presented
+					as.Result = cassie.Assertion_RESULT_PASSED // Set to PASSED if the command is present (may be overridden below)
 				}
-				for _, flag := range flags { // if command is presented but required flags are not, the assertion should fail
+				for _, flag := range flags { // If the command is present, check for all required flags
 					if !strings.Contains(block.Contents, flag) {
-						as.Result = cassie.Assertion_RESULT_FAILED
+						as.Result = cassie.Assertion_RESULT_FAILED // Set to FAILED if any required flag is missing
 					}
 				}
 			}
@@ -65,6 +65,7 @@ func (t toolInvocation) Assert(ctx context.Context, as *cassie.Assertion, blocks
 type fileRetrieved struct{}
 
 func (f fileRetrieved) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	// TODO: implement
 	fmt.Println("fileRetrieved", as.Name)
 	return nil
 }
@@ -72,6 +73,7 @@ func (f fileRetrieved) Assert(ctx context.Context, as *cassie.Assertion, blocks 
 type llmJudge struct{}
 
 func (l llmJudge) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	// TODO: implement
 	fmt.Println("llmJudge", as.Name)
 	return nil
 }
@@ -182,7 +184,7 @@ func runInference(input string, cfg *config.CloudAssistantConfig) (map[string]*c
 	req := connect.NewRequest(genReq)
 	cookie := &http.Cookie{
 		Name:  "cassie-session",
-		Value: cfg.CassieCookie, // supply the real value here
+		Value: cfg.CassieCookie, // supply the real value here, temporary solution
 		Path:  "/",              // adjust if needed
 	}
 	req.Header().Add("Cookie", cookie.String())
