@@ -26,12 +26,12 @@ func NewEvalCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println("\nBlocks received:")
+			cmd.Println("\nBlocks received:")
 			for _, block := range blocks {
-				fmt.Printf("block id: %s contents: %s\n", block.Id, block.Contents)
+				cmd.Printf("block id: %s contents: %s\n", block.Id, block.Contents)
 			}
-			fmt.Println("\nBlocks:")
-			fmt.Println(blocks)
+			cmd.Println("\nBlocks:")
+			cmd.Println(blocks)
 			return nil
 		},
 	}
