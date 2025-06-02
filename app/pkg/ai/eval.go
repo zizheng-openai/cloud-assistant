@@ -3,12 +3,16 @@ package ai
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/go-logr/zapr"
+	"github.com/jlewi/cloud-assistant/app/pkg/config"
 	"github.com/jlewi/cloud-assistant/app/pkg/logs"
 	"github.com/jlewi/cloud-assistant/protos/gen/cassie"
 	"github.com/jlewi/cloud-assistant/protos/gen/cassie/cassieconnect"
@@ -16,17 +20,94 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
-func AgentInference(command string) (map[string]*cassie.Block, error) {
-	blocks, err := runAIClient("http://localhost:8080/")
+type Assertor interface {
+	Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error
+}
+
+type shellRequiredFlag struct{}
+
+func (s shellRequiredFlag) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	shellFlag := as.GetShellRequiredFlag()
+	command := shellFlag.Command
+	flags := shellFlag.Flags
+	contain_command := false
+	as.Result = cassie.Assertion_RESULT_SKIPPED // default to skipped
+	for _, block := range blocks {
+		if block.Kind == cassie.BlockKind_CODE {
+			if strings.Contains(block.Contents, command) {
+				if !contain_command {
+					contain_command = true
+					as.Result = cassie.Assertion_RESULT_PASSED // only activate the assertion if the command is presented
+				}
+				for _, flag := range flags { // if command is presented but required flags are not, the assertion should fail
+					if !strings.Contains(block.Contents, flag) {
+						as.Result = cassie.Assertion_RESULT_FAILED
+					}
+				}
+			}
+		}
+	}
+	fmt.Println("shellRequiredFlag", as.Name, as.Result)
+	return nil
+}
+
+type toolInvocation struct{}
+
+func (t toolInvocation) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	// TODO: implement
+	fmt.Println("toolInvocation", as.Name)
+	return nil
+}
+
+type fileRetrieved struct{}
+
+func (f fileRetrieved) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	fmt.Println("fileRetrieved", as.Name)
+	return nil
+}
+
+type llmJudge struct{}
+
+func (l llmJudge) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	fmt.Println("llmJudge", as.Name)
+	return nil
+}
+
+var registry = map[cassie.Assertion_Type]Assertor{
+	cassie.Assertion_TYPE_SHELL_REQUIRED_FLAG: shellRequiredFlag{},
+	cassie.Assertion_TYPE_TOOL_INVOKED:        toolInvocation{},
+	cassie.Assertion_TYPE_FILE_RETRIEVED:      fileRetrieved{},
+	cassie.Assertion_TYPE_LLM_JUDGE:           llmJudge{},
+}
+
+func EvalFromProto(protoFile string, cfg *config.CloudAssistantConfig) (map[string]*cassie.Block, error) {
+	data, err := os.ReadFile(protoFile)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to read proto file %q", protoFile)
+	}
+	var dataset cassie.EvalDataset
+	if err := proto.Unmarshal(data, &dataset); err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal proto file %q", protoFile)
+	}
+	blocks, err := runInference(dataset.Samples[0].InputText, cfg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to run inference")
+	}
+	for _, sample := range dataset.Samples {
+		for _, assertion := range sample.Assertions {
+			err := registry[assertion.Type].Assert(context.TODO(), assertion, blocks)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to assert %q", assertion.Name)
+			}
+		}
 	}
 	return blocks, nil
 }
 
-func runAIClient(baseURL string) (map[string]*cassie.Block, error) {
+func runInference(input string, cfg *config.CloudAssistantConfig) (map[string]*cassie.Block, error) {
 	log := zapr.NewLoggerWithOptions(zap.L(), zapr.AllowZapFields(true))
 
 	blocks := make(map[string]*cassie.Block)
@@ -37,6 +118,11 @@ func runAIClient(baseURL string) (map[string]*cassie.Block, error) {
 	}
 
 	log.Info("Block", logs.ZapProto("block", &Block))
+
+	baseURL := cfg.TargetURL
+	if baseURL == "" {
+		return blocks, errors.New("TargetURL is not set in config")
+	}
 
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -89,15 +175,15 @@ func runAIClient(baseURL string) (map[string]*cassie.Block, error) {
 			{
 				Kind:     cassie.BlockKind_MARKUP,
 				Role:     cassie.BlockRole_BLOCK_ROLE_USER,
-				Contents: "What region is cluster unified-60 in?",
+				Contents: input,
 			},
 		},
 	}
 	req := connect.NewRequest(genReq)
 	cookie := &http.Cookie{
 		Name:  "cassie-session",
-		Value: "",  // supply the real value here
-		Path:  "/", // adjust if needed
+		Value: cfg.CassieCookie, // supply the real value here
+		Path:  "/",              // adjust if needed
 	}
 	req.Header().Add("Cookie", cookie.String())
 	stream, err := client.Generate(ctx, req)
