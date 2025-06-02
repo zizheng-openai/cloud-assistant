@@ -23,7 +23,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type Assertor interface {
+type Asserter interface {
 	Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error
 }
 
@@ -78,7 +78,7 @@ func (l llmJudge) Assert(ctx context.Context, as *cassie.Assertion, blocks map[s
 	return nil
 }
 
-var registry = map[cassie.Assertion_Type]Assertor{
+var registry = map[cassie.Assertion_Type]Asserter{
 	cassie.Assertion_TYPE_SHELL_REQUIRED_FLAG: shellRequiredFlag{},
 	cassie.Assertion_TYPE_TOOL_INVOKED:        toolInvocation{},
 	cassie.Assertion_TYPE_FILE_RETRIEVED:      fileRetrieved{},
