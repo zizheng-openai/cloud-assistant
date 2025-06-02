@@ -20,7 +20,7 @@ This document explains **Level 1 evaluations** for the AI SRE project—simple, 
 
 | Concept | Proto Message | Description |
 |---------|---------------|-------------|
-| **EvalDataset** | `EvalDataset` | A collection of `EvalSample`s plus metadata (model, version, etc.). |
+| **EvalDataset** | `EvalDataset` | A collection of `EvalSample`s plus metadata. |
 | **EvalSample** | `EvalSample` | One **input document** + a list of **Assertion**s to check. |
 | **Assertion** | `Assertion` | A single check that yields **PASS / FAIL / SKIPPED**. |
 | **Assertor** (Go) | N/A | Concrete implementation that evaluates one `Assertion` type. |
