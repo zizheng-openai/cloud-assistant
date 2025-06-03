@@ -10,7 +10,7 @@ message Assertion {
 
   // What we are checking for.
   enum Type {
-    TYPE_UNSPECIFIED        = 0;
+    TYPE_UNKNOWN            = 0;
     TYPE_SHELL_REQUIRED_FLAG = 1;  // Were all required CLI flags present?
     TYPE_TOOL_INVOKED        = 2;  // Was a tool invoked (or not)?
     TYPE_FILE_RETRIEVED      = 3;  // Was a file retrieved (or not)?

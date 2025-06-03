@@ -25,7 +25,7 @@ const (
 type Assertion_Type int32
 
 const (
-	Assertion_TYPE_UNSPECIFIED         Assertion_Type = 0
+	Assertion_TYPE_UNKNOWN             Assertion_Type = 0
 	Assertion_TYPE_SHELL_REQUIRED_FLAG Assertion_Type = 1 // Were all required CLI flags present?
 	Assertion_TYPE_TOOL_INVOKED        Assertion_Type = 2 // Was a tool invoked (or not)?
 	Assertion_TYPE_FILE_RETRIEVED      Assertion_Type = 3 // Was a file retrieved (or not)?
@@ -35,14 +35,14 @@ const (
 // Enum value maps for Assertion_Type.
 var (
 	Assertion_Type_name = map[int32]string{
-		0: "TYPE_UNSPECIFIED",
+		0: "TYPE_UNKNOWN",
 		1: "TYPE_SHELL_REQUIRED_FLAG",
 		2: "TYPE_TOOL_INVOKED",
 		3: "TYPE_FILE_RETRIEVED",
 		4: "TYPE_LLM_JUDGE",
 	}
 	Assertion_Type_value = map[string]int32{
-		"TYPE_UNSPECIFIED":         0,
+		"TYPE_UNKNOWN":             0,
 		"TYPE_SHELL_REQUIRED_FLAG": 1,
 		"TYPE_TOOL_INVOKED":        2,
 		"TYPE_FILE_RETRIEVED":      3,
@@ -192,7 +192,7 @@ func (x *Assertion) GetType() Assertion_Type {
 	if x != nil {
 		return x.Type
 	}
-	return Assertion_TYPE_UNSPECIFIED
+	return Assertion_TYPE_UNKNOWN
 }
 
 func (x *Assertion) GetResult() Assertion_Result {
@@ -612,7 +612,7 @@ var File_cassie_eval_proto protoreflect.FileDescriptor
 
 const file_cassie_eval_proto_rawDesc = "" +
 	"\n" +
-	"\x11cassie/eval.proto\"\xad\a\n" +
+	"\x11cassie/eval.proto\"\xa9\a\n" +
 	"\tAssertion\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0f.Assertion.TypeR\x04type\x12)\n" +
@@ -634,9 +634,9 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\bLLMJudge\x12\x16\n" +
 	"\x06prompt\x18\x01 \x01(\tR\x06prompt\x12\x1f\n" +
 	"\vshould_pass\x18\x02 \x01(\bR\n" +
-	"shouldPass\"~\n" +
-	"\x04Type\x12\x14\n" +
-	"\x10TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"shouldPass\"z\n" +
+	"\x04Type\x12\x10\n" +
+	"\fTYPE_UNKNOWN\x10\x00\x12\x1c\n" +
 	"\x18TYPE_SHELL_REQUIRED_FLAG\x10\x01\x12\x15\n" +
 	"\x11TYPE_TOOL_INVOKED\x10\x02\x12\x17\n" +
 	"\x13TYPE_FILE_RETRIEVED\x10\x03\x12\x12\n" +
