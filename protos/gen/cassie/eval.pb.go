@@ -82,8 +82,8 @@ type Assertion_Result int32
 
 const (
 	Assertion_RESULT_UNKNOWN Assertion_Result = 0
-	Assertion_RESULT_PASSED  Assertion_Result = 1
-	Assertion_RESULT_FAILED  Assertion_Result = 2
+	Assertion_RESULT_TRUE    Assertion_Result = 1
+	Assertion_RESULT_FALSE   Assertion_Result = 2
 	Assertion_RESULT_SKIPPED Assertion_Result = 3
 )
 
@@ -91,14 +91,14 @@ const (
 var (
 	Assertion_Result_name = map[int32]string{
 		0: "RESULT_UNKNOWN",
-		1: "RESULT_PASSED",
-		2: "RESULT_FAILED",
+		1: "RESULT_TRUE",
+		2: "RESULT_FALSE",
 		3: "RESULT_SKIPPED",
 	}
 	Assertion_Result_value = map[string]int32{
 		"RESULT_UNKNOWN": 0,
-		"RESULT_PASSED":  1,
-		"RESULT_FAILED":  2,
+		"RESULT_TRUE":    1,
+		"RESULT_FALSE":   2,
 		"RESULT_SKIPPED": 3,
 	}
 )
@@ -444,8 +444,7 @@ func (x *Assertion_ShellRequiredFlag) GetFlags() []string {
 // Verifies that a tool **is** or **is not** invoked.
 type Assertion_ToolInvocation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ToolName      string                 `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`              // e.g. "file_search"
-	ShouldInvoke  bool                   `protobuf:"varint,2,opt,name=should_invoke,json=shouldInvoke,proto3" json:"should_invoke,omitempty"` // true = must invoke, false = must NOT invoke
+	ToolName      string                 `protobuf:"bytes,1,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"` // e.g. "file_search"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -487,21 +486,13 @@ func (x *Assertion_ToolInvocation) GetToolName() string {
 	return ""
 }
 
-func (x *Assertion_ToolInvocation) GetShouldInvoke() bool {
-	if x != nil {
-		return x.ShouldInvoke
-	}
-	return false
-}
-
 // Verifies that a file **is** or **is not** retrieved.
 type Assertion_FileRetrieval struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	FileId         string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
-	FileName       string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`                    // Optional human-readable name
-	ShouldRetrieve bool                   `protobuf:"varint,3,opt,name=should_retrieve,json=shouldRetrieve,proto3" json:"should_retrieve,omitempty"` // true = must retrieve, false = must NOT retrieve
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"` // Optional human-readable name
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Assertion_FileRetrieval) Reset() {
@@ -548,18 +539,10 @@ func (x *Assertion_FileRetrieval) GetFileName() string {
 	return ""
 }
 
-func (x *Assertion_FileRetrieval) GetShouldRetrieve() bool {
-	if x != nil {
-		return x.ShouldRetrieve
-	}
-	return false
-}
-
 // Asks an LLM to grade the assistant’s answer.
 type Assertion_LLMJudge struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Prompt        string                 `protobuf:"bytes,1,opt,name=prompt,proto3" json:"prompt,omitempty"`
-	ShouldPass    bool                   `protobuf:"varint,2,opt,name=should_pass,json=shouldPass,proto3" json:"should_pass,omitempty"` // true = model must return “correct”
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -601,18 +584,11 @@ func (x *Assertion_LLMJudge) GetPrompt() string {
 	return ""
 }
 
-func (x *Assertion_LLMJudge) GetShouldPass() bool {
-	if x != nil {
-		return x.ShouldPass
-	}
-	return false
-}
-
 var File_cassie_eval_proto protoreflect.FileDescriptor
 
 const file_cassie_eval_proto_rawDesc = "" +
 	"\n" +
-	"\x11cassie/eval.proto\"\xa9\a\n" +
+	"\x11cassie/eval.proto\"\xb7\x06\n" +
 	"\tAssertion\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0f.Assertion.TypeR\x04type\x12)\n" +
@@ -623,28 +599,24 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\tllm_judge\x18\a \x01(\v2\x13.Assertion.LLMJudgeH\x00R\bllmJudge\x1aC\n" +
 	"\x11ShellRequiredFlag\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
-	"\x05flags\x18\x02 \x03(\tR\x05flags\x1aR\n" +
+	"\x05flags\x18\x02 \x03(\tR\x05flags\x1a-\n" +
 	"\x0eToolInvocation\x12\x1b\n" +
-	"\ttool_name\x18\x01 \x01(\tR\btoolName\x12#\n" +
-	"\rshould_invoke\x18\x02 \x01(\bR\fshouldInvoke\x1an\n" +
+	"\ttool_name\x18\x01 \x01(\tR\btoolName\x1aE\n" +
 	"\rFileRetrieval\x12\x17\n" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1b\n" +
-	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12'\n" +
-	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1aC\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x1a\"\n" +
 	"\bLLMJudge\x12\x16\n" +
-	"\x06prompt\x18\x01 \x01(\tR\x06prompt\x12\x1f\n" +
-	"\vshould_pass\x18\x02 \x01(\bR\n" +
-	"shouldPass\"z\n" +
+	"\x06prompt\x18\x01 \x01(\tR\x06prompt\"z\n" +
 	"\x04Type\x12\x10\n" +
 	"\fTYPE_UNKNOWN\x10\x00\x12\x1c\n" +
 	"\x18TYPE_SHELL_REQUIRED_FLAG\x10\x01\x12\x15\n" +
 	"\x11TYPE_TOOL_INVOKED\x10\x02\x12\x17\n" +
 	"\x13TYPE_FILE_RETRIEVED\x10\x03\x12\x12\n" +
-	"\x0eTYPE_LLM_JUDGE\x10\x04\"V\n" +
+	"\x0eTYPE_LLM_JUDGE\x10\x04\"S\n" +
 	"\x06Result\x12\x12\n" +
-	"\x0eRESULT_UNKNOWN\x10\x00\x12\x11\n" +
-	"\rRESULT_PASSED\x10\x01\x12\x11\n" +
-	"\rRESULT_FAILED\x10\x02\x12\x12\n" +
+	"\x0eRESULT_UNKNOWN\x10\x00\x12\x0f\n" +
+	"\vRESULT_TRUE\x10\x01\x12\x10\n" +
+	"\fRESULT_FALSE\x10\x02\x12\x12\n" +
 	"\x0eRESULT_SKIPPED\x10\x03B\t\n" +
 	"\apayload\"\x8d\x01\n" +
 	"\n" +

@@ -20,8 +20,8 @@ message Assertion {
   // Outcome of an assertion after a test run.
   enum Result {
     RESULT_UNKNOWN = 0;
-    RESULT_PASSED  = 1;
-    RESULT_FAILED  = 2;
+    RESULT_TRUE  = 1;
+    RESULT_FALSE  = 2;
     RESULT_SKIPPED = 3;
   }
 
@@ -48,20 +48,17 @@ message Assertion {
   // Verifies that a tool **is** or **is not** invoked.
   message ToolInvocation {
     string tool_name = 1;                         // e.g. "file_search"
-    bool   should_invoke = 2;                     // true = must invoke, false = must NOT invoke
   }
 
   // Verifies that a file **is** or **is not** retrieved.
   message FileRetrieval {
     string file_id   = 1;
     string file_name = 2;                         // Optional human-readable name
-    bool   should_retrieve = 3;                   // true = must retrieve, false = must NOT retrieve
   }
 
   // Asks an LLM to grade the assistant’s answer.
   message LLMJudge {
     string    prompt = 1;
-    bool      should_pass  = 2;                   // true = model must return “correct”
   }
 }
 
