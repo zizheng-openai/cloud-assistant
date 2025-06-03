@@ -134,8 +134,7 @@ func runInference(input string, cfg *config.CloudAssistantConfig) (map[string]*c
 
 	var client cassieconnect.BlocksServiceClient
 
-	// Mimic what the frontend does
-	options := []connect.ClientOption{connect.WithGRPCWeb()}
+	var options []connect.ClientOption
 	if u.Scheme == "https" {
 		// Configure the TLS settings
 		tlsConfig := &tls.Config{
