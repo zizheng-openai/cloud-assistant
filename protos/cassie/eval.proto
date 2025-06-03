@@ -34,7 +34,7 @@ message Assertion {
     ShellRequiredFlag shell_required_flag = 4;
     ToolInvocation    tool_invocation     = 5;
     FileRetrieval     file_retrieval      = 6;
-    LlmJudge          llm_judge           = 7;
+    LLMJudge          llm_judge           = 7;
   }
 
   // -------------------- Payload messages ---------------------------------
@@ -59,7 +59,7 @@ message Assertion {
   }
 
   // Asks an LLM to grade the assistant’s answer.
-  message LlmJudge {
+  message LLMJudge {
     string    judge_prompt = 1;
     bool      should_pass  = 2;                   // true = model must return “correct”
   }

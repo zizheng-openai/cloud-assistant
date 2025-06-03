@@ -145,7 +145,7 @@ type Assertion struct {
 	//	*Assertion_ShellRequiredFlag_
 	//	*Assertion_ToolInvocation_
 	//	*Assertion_FileRetrieval_
-	//	*Assertion_LlmJudge_
+	//	*Assertion_LlmJudge
 	Payload       isAssertion_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -236,9 +236,9 @@ func (x *Assertion) GetFileRetrieval() *Assertion_FileRetrieval {
 	return nil
 }
 
-func (x *Assertion) GetLlmJudge() *Assertion_LlmJudge {
+func (x *Assertion) GetLlmJudge() *Assertion_LLMJudge {
 	if x != nil {
-		if x, ok := x.Payload.(*Assertion_LlmJudge_); ok {
+		if x, ok := x.Payload.(*Assertion_LlmJudge); ok {
 			return x.LlmJudge
 		}
 	}
@@ -261,8 +261,8 @@ type Assertion_FileRetrieval_ struct {
 	FileRetrieval *Assertion_FileRetrieval `protobuf:"bytes,6,opt,name=file_retrieval,json=fileRetrieval,proto3,oneof"`
 }
 
-type Assertion_LlmJudge_ struct {
-	LlmJudge *Assertion_LlmJudge `protobuf:"bytes,7,opt,name=llm_judge,json=llmJudge,proto3,oneof"`
+type Assertion_LlmJudge struct {
+	LlmJudge *Assertion_LLMJudge `protobuf:"bytes,7,opt,name=llm_judge,json=llmJudge,proto3,oneof"`
 }
 
 func (*Assertion_ShellRequiredFlag_) isAssertion_Payload() {}
@@ -271,7 +271,7 @@ func (*Assertion_ToolInvocation_) isAssertion_Payload() {}
 
 func (*Assertion_FileRetrieval_) isAssertion_Payload() {}
 
-func (*Assertion_LlmJudge_) isAssertion_Payload() {}
+func (*Assertion_LlmJudge) isAssertion_Payload() {}
 
 // -------------------------------------------------------------------------
 // Test sample – a full input plus its assertions
@@ -556,7 +556,7 @@ func (x *Assertion_FileRetrieval) GetShouldRetrieve() bool {
 }
 
 // Asks an LLM to grade the assistant’s answer.
-type Assertion_LlmJudge struct {
+type Assertion_LLMJudge struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JudgePrompt   string                 `protobuf:"bytes,1,opt,name=judge_prompt,json=judgePrompt,proto3" json:"judge_prompt,omitempty"`
 	ShouldPass    bool                   `protobuf:"varint,2,opt,name=should_pass,json=shouldPass,proto3" json:"should_pass,omitempty"` // true = model must return “correct”
@@ -564,20 +564,20 @@ type Assertion_LlmJudge struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Assertion_LlmJudge) Reset() {
-	*x = Assertion_LlmJudge{}
+func (x *Assertion_LLMJudge) Reset() {
+	*x = Assertion_LLMJudge{}
 	mi := &file_cassie_eval_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Assertion_LlmJudge) String() string {
+func (x *Assertion_LLMJudge) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Assertion_LlmJudge) ProtoMessage() {}
+func (*Assertion_LLMJudge) ProtoMessage() {}
 
-func (x *Assertion_LlmJudge) ProtoReflect() protoreflect.Message {
+func (x *Assertion_LLMJudge) ProtoReflect() protoreflect.Message {
 	mi := &file_cassie_eval_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -589,19 +589,19 @@ func (x *Assertion_LlmJudge) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Assertion_LlmJudge.ProtoReflect.Descriptor instead.
-func (*Assertion_LlmJudge) Descriptor() ([]byte, []int) {
+// Deprecated: Use Assertion_LLMJudge.ProtoReflect.Descriptor instead.
+func (*Assertion_LLMJudge) Descriptor() ([]byte, []int) {
 	return file_cassie_eval_proto_rawDescGZIP(), []int{0, 3}
 }
 
-func (x *Assertion_LlmJudge) GetJudgePrompt() string {
+func (x *Assertion_LLMJudge) GetJudgePrompt() string {
 	if x != nil {
 		return x.JudgePrompt
 	}
 	return ""
 }
 
-func (x *Assertion_LlmJudge) GetShouldPass() bool {
+func (x *Assertion_LLMJudge) GetShouldPass() bool {
 	if x != nil {
 		return x.ShouldPass
 	}
@@ -620,7 +620,7 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\x13shell_required_flag\x18\x04 \x01(\v2\x1c.Assertion.ShellRequiredFlagH\x00R\x11shellRequiredFlag\x12D\n" +
 	"\x0ftool_invocation\x18\x05 \x01(\v2\x19.Assertion.ToolInvocationH\x00R\x0etoolInvocation\x12A\n" +
 	"\x0efile_retrieval\x18\x06 \x01(\v2\x18.Assertion.FileRetrievalH\x00R\rfileRetrieval\x122\n" +
-	"\tllm_judge\x18\a \x01(\v2\x13.Assertion.LlmJudgeH\x00R\bllmJudge\x1aC\n" +
+	"\tllm_judge\x18\a \x01(\v2\x13.Assertion.LLMJudgeH\x00R\bllmJudge\x1aC\n" +
 	"\x11ShellRequiredFlag\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05flags\x18\x02 \x03(\tR\x05flags\x1aR\n" +
@@ -631,7 +631,7 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12'\n" +
 	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1aN\n" +
-	"\bLlmJudge\x12!\n" +
+	"\bLLMJudge\x12!\n" +
 	"\fjudge_prompt\x18\x01 \x01(\tR\vjudgePrompt\x12\x1f\n" +
 	"\vshould_pass\x18\x02 \x01(\bR\n" +
 	"shouldPass\"~\n" +
@@ -683,7 +683,7 @@ var file_cassie_eval_proto_goTypes = []any{
 	(*Assertion_ShellRequiredFlag)(nil), // 5: Assertion.ShellRequiredFlag
 	(*Assertion_ToolInvocation)(nil),    // 6: Assertion.ToolInvocation
 	(*Assertion_FileRetrieval)(nil),     // 7: Assertion.FileRetrieval
-	(*Assertion_LlmJudge)(nil),          // 8: Assertion.LlmJudge
+	(*Assertion_LLMJudge)(nil),          // 8: Assertion.LLMJudge
 }
 var file_cassie_eval_proto_depIdxs = []int32{
 	0, // 0: Assertion.type:type_name -> Assertion.Type
@@ -691,7 +691,7 @@ var file_cassie_eval_proto_depIdxs = []int32{
 	5, // 2: Assertion.shell_required_flag:type_name -> Assertion.ShellRequiredFlag
 	6, // 3: Assertion.tool_invocation:type_name -> Assertion.ToolInvocation
 	7, // 4: Assertion.file_retrieval:type_name -> Assertion.FileRetrieval
-	8, // 5: Assertion.llm_judge:type_name -> Assertion.LlmJudge
+	8, // 5: Assertion.llm_judge:type_name -> Assertion.LLMJudge
 	2, // 6: EvalSample.assertions:type_name -> Assertion
 	3, // 7: EvalDataset.samples:type_name -> EvalSample
 	8, // [8:8] is the sub-list for method output_type
@@ -710,7 +710,7 @@ func file_cassie_eval_proto_init() {
 		(*Assertion_ShellRequiredFlag_)(nil),
 		(*Assertion_ToolInvocation_)(nil),
 		(*Assertion_FileRetrieval_)(nil),
-		(*Assertion_LlmJudge_)(nil),
+		(*Assertion_LlmJudge)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
