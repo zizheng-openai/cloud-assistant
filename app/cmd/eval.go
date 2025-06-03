@@ -17,16 +17,11 @@ func NewEvalCmd() *cobra.Command {
 				return err
 			}
 			app.Config.CloudAssistant.TargetURL = args[1]
-			blocks, err := ai.EvalFromYAML(args[0], app.Config.CloudAssistant)
+			_, err := ai.EvalFromYAML(args[0], app.Config.CloudAssistant)
 			if err != nil {
 				return err
 			}
-			cmd.Println("\nBlocks received:")
-			for _, block := range blocks {
-				cmd.Printf("block id: %s contents: %s\n", block.Id, block.Contents)
-			}
-			cmd.Println("\nBlocks:")
-			cmd.Println(blocks)
+
 			return nil
 		},
 	}

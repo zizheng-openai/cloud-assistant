@@ -60,15 +60,26 @@ type toolInvocation struct{}
 
 func (t toolInvocation) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
 	// TODO: implement
-	fmt.Println("toolInvocation", as.Name)
+	fmt.Println("toolInvocation", as.Name, as.Result)
 	return nil
 }
 
 type fileRetrieved struct{}
 
 func (f fileRetrieved) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
-	// TODO: implement
-	fmt.Println("fileRetrieved", as.Name)
+	targetFileId := as.GetFileRetrieval().FileId
+	as.Result = cassie.Assertion_RESULT_FALSE // Default to false unless the file is found
+	for _, block := range blocks {
+		if block.Kind == cassie.BlockKind_FILE_SEARCH_RESULTS {
+			for _, file := range block.FileSearchResults {
+				if file.FileID == targetFileId {
+					as.Result = cassie.Assertion_RESULT_TRUE
+					break
+				}
+			}
+		}
+	}
+	fmt.Println("fileRetrieved", as.Name, as.Result)
 	return nil
 }
 
@@ -76,7 +87,7 @@ type llmJudge struct{}
 
 func (l llmJudge) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
 	// TODO: implement
-	fmt.Println("llmJudge", as.Name)
+	fmt.Println("llmJudge", as.Name, as.Result)
 	return nil
 }
 
@@ -243,17 +254,24 @@ func EvalFromYAML(yamlFile string, cfg *config.CloudAssistantConfig) (map[string
 	if err := protojson.Unmarshal(jsonData, &dataset); err != nil {
 		return nil, errors.Wrapf(err, "failed to unmarshal json to proto for file %q", yamlFile)
 	}
-	blocks, err := runInference(dataset.Samples[0].InputText, cfg)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to run inference")
-	}
 	for _, sample := range dataset.Samples {
+		blocks, err := runInference(sample.InputText, cfg)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to run inference")
+		}
 		for _, assertion := range sample.Assertions {
 			err := registry[assertion.Type].Assert(context.TODO(), assertion, blocks)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to assert %q", assertion.Name)
 			}
 		}
+		fmt.Println("\nBlocks received:")
+		for _, block := range blocks {
+			fmt.Printf("block id: %s contents: %s\n", block.Id, block.Contents)
+		}
+		fmt.Println("\nBlocks:")
+		fmt.Println(blocks)
+		fmt.Println("\n--------------------------------")
 	}
-	return blocks, nil
+	return nil, nil
 }
