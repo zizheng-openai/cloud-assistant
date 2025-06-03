@@ -558,7 +558,7 @@ func (x *Assertion_FileRetrieval) GetShouldRetrieve() bool {
 // Asks an LLM to grade the assistant’s answer.
 type Assertion_LLMJudge struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	JudgePrompt   string                 `protobuf:"bytes,1,opt,name=judge_prompt,json=judgePrompt,proto3" json:"judge_prompt,omitempty"`
+	Prompt        string                 `protobuf:"bytes,1,opt,name=prompt,proto3" json:"prompt,omitempty"`
 	ShouldPass    bool                   `protobuf:"varint,2,opt,name=should_pass,json=shouldPass,proto3" json:"should_pass,omitempty"` // true = model must return “correct”
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -594,9 +594,9 @@ func (*Assertion_LLMJudge) Descriptor() ([]byte, []int) {
 	return file_cassie_eval_proto_rawDescGZIP(), []int{0, 3}
 }
 
-func (x *Assertion_LLMJudge) GetJudgePrompt() string {
+func (x *Assertion_LLMJudge) GetPrompt() string {
 	if x != nil {
-		return x.JudgePrompt
+		return x.Prompt
 	}
 	return ""
 }
@@ -612,7 +612,7 @@ var File_cassie_eval_proto protoreflect.FileDescriptor
 
 const file_cassie_eval_proto_rawDesc = "" +
 	"\n" +
-	"\x11cassie/eval.proto\"\xb8\a\n" +
+	"\x11cassie/eval.proto\"\xad\a\n" +
 	"\tAssertion\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0f.Assertion.TypeR\x04type\x12)\n" +
@@ -630,9 +630,9 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\rFileRetrieval\x12\x17\n" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12'\n" +
-	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1aN\n" +
-	"\bLLMJudge\x12!\n" +
-	"\fjudge_prompt\x18\x01 \x01(\tR\vjudgePrompt\x12\x1f\n" +
+	"\x0fshould_retrieve\x18\x03 \x01(\bR\x0eshouldRetrieve\x1aC\n" +
+	"\bLLMJudge\x12\x16\n" +
+	"\x06prompt\x18\x01 \x01(\tR\x06prompt\x12\x1f\n" +
 	"\vshould_pass\x18\x02 \x01(\bR\n" +
 	"shouldPass\"~\n" +
 	"\x04Type\x12\x14\n" +

@@ -60,7 +60,7 @@ message Assertion {
 
   // Asks an LLM to grade the assistant’s answer.
   message LLMJudge {
-    string    judge_prompt = 1;
+    string    prompt = 1;
     bool      should_pass  = 2;                   // true = model must return “correct”
   }
 }
