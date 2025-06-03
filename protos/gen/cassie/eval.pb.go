@@ -30,6 +30,7 @@ const (
 	Assertion_TYPE_TOOL_INVOKED        Assertion_Type = 2 // Was a tool invoked (or not)?
 	Assertion_TYPE_FILE_RETRIEVED      Assertion_Type = 3 // Was a file retrieved (or not)?
 	Assertion_TYPE_LLM_JUDGE           Assertion_Type = 4 // Ask an LLM to grade the final answer.
+	Assertion_TYPE_CODEBLOCK_REGEX     Assertion_Type = 5 // Does at least one code block match the regex?
 )
 
 // Enum value maps for Assertion_Type.
@@ -40,6 +41,7 @@ var (
 		2: "TYPE_TOOL_INVOKED",
 		3: "TYPE_FILE_RETRIEVED",
 		4: "TYPE_LLM_JUDGE",
+		5: "TYPE_CODEBLOCK_REGEX",
 	}
 	Assertion_Type_value = map[string]int32{
 		"TYPE_UNKNOWN":             0,
@@ -47,6 +49,7 @@ var (
 		"TYPE_TOOL_INVOKED":        2,
 		"TYPE_FILE_RETRIEVED":      3,
 		"TYPE_LLM_JUDGE":           4,
+		"TYPE_CODEBLOCK_REGEX":     5,
 	}
 )
 
@@ -146,6 +149,7 @@ type Assertion struct {
 	//	*Assertion_ToolInvocation_
 	//	*Assertion_FileRetrieval_
 	//	*Assertion_LlmJudge
+	//	*Assertion_CodeblockRegex_
 	Payload       isAssertion_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -245,6 +249,15 @@ func (x *Assertion) GetLlmJudge() *Assertion_LLMJudge {
 	return nil
 }
 
+func (x *Assertion) GetCodeblockRegex() *Assertion_CodeblockRegex {
+	if x != nil {
+		if x, ok := x.Payload.(*Assertion_CodeblockRegex_); ok {
+			return x.CodeblockRegex
+		}
+	}
+	return nil
+}
+
 type isAssertion_Payload interface {
 	isAssertion_Payload()
 }
@@ -265,6 +278,10 @@ type Assertion_LlmJudge struct {
 	LlmJudge *Assertion_LLMJudge `protobuf:"bytes,7,opt,name=llm_judge,json=llmJudge,proto3,oneof"`
 }
 
+type Assertion_CodeblockRegex_ struct {
+	CodeblockRegex *Assertion_CodeblockRegex `protobuf:"bytes,8,opt,name=codeblock_regex,json=codeblockRegex,proto3,oneof"`
+}
+
 func (*Assertion_ShellRequiredFlag_) isAssertion_Payload() {}
 
 func (*Assertion_ToolInvocation_) isAssertion_Payload() {}
@@ -272,6 +289,8 @@ func (*Assertion_ToolInvocation_) isAssertion_Payload() {}
 func (*Assertion_FileRetrieval_) isAssertion_Payload() {}
 
 func (*Assertion_LlmJudge) isAssertion_Payload() {}
+
+func (*Assertion_CodeblockRegex_) isAssertion_Payload() {}
 
 // -------------------------------------------------------------------------
 // Test sample – a full input plus its assertions
@@ -584,11 +603,56 @@ func (x *Assertion_LLMJudge) GetPrompt() string {
 	return ""
 }
 
+// Checks if at least one code block matches the regex.
+type Assertion_CodeblockRegex struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Regex         string                 `protobuf:"bytes,1,opt,name=regex,proto3" json:"regex,omitempty"` // The regex pattern to match against code blocks
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Assertion_CodeblockRegex) Reset() {
+	*x = Assertion_CodeblockRegex{}
+	mi := &file_cassie_eval_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Assertion_CodeblockRegex) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Assertion_CodeblockRegex) ProtoMessage() {}
+
+func (x *Assertion_CodeblockRegex) ProtoReflect() protoreflect.Message {
+	mi := &file_cassie_eval_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Assertion_CodeblockRegex.ProtoReflect.Descriptor instead.
+func (*Assertion_CodeblockRegex) Descriptor() ([]byte, []int) {
+	return file_cassie_eval_proto_rawDescGZIP(), []int{0, 4}
+}
+
+func (x *Assertion_CodeblockRegex) GetRegex() string {
+	if x != nil {
+		return x.Regex
+	}
+	return ""
+}
+
 var File_cassie_eval_proto protoreflect.FileDescriptor
 
 const file_cassie_eval_proto_rawDesc = "" +
 	"\n" +
-	"\x11cassie/eval.proto\"\xb7\x06\n" +
+	"\x11cassie/eval.proto\"\xc0\a\n" +
 	"\tAssertion\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x0f.Assertion.TypeR\x04type\x12)\n" +
@@ -596,7 +660,8 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\x13shell_required_flag\x18\x04 \x01(\v2\x1c.Assertion.ShellRequiredFlagH\x00R\x11shellRequiredFlag\x12D\n" +
 	"\x0ftool_invocation\x18\x05 \x01(\v2\x19.Assertion.ToolInvocationH\x00R\x0etoolInvocation\x12A\n" +
 	"\x0efile_retrieval\x18\x06 \x01(\v2\x18.Assertion.FileRetrievalH\x00R\rfileRetrieval\x122\n" +
-	"\tllm_judge\x18\a \x01(\v2\x13.Assertion.LLMJudgeH\x00R\bllmJudge\x1aC\n" +
+	"\tllm_judge\x18\a \x01(\v2\x13.Assertion.LLMJudgeH\x00R\bllmJudge\x12D\n" +
+	"\x0fcodeblock_regex\x18\b \x01(\v2\x19.Assertion.CodeblockRegexH\x00R\x0ecodeblockRegex\x1aC\n" +
 	"\x11ShellRequiredFlag\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05flags\x18\x02 \x03(\tR\x05flags\x1a-\n" +
@@ -606,13 +671,16 @@ const file_cassie_eval_proto_rawDesc = "" +
 	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x1a\"\n" +
 	"\bLLMJudge\x12\x16\n" +
-	"\x06prompt\x18\x01 \x01(\tR\x06prompt\"z\n" +
+	"\x06prompt\x18\x01 \x01(\tR\x06prompt\x1a&\n" +
+	"\x0eCodeblockRegex\x12\x14\n" +
+	"\x05regex\x18\x01 \x01(\tR\x05regex\"\x94\x01\n" +
 	"\x04Type\x12\x10\n" +
 	"\fTYPE_UNKNOWN\x10\x00\x12\x1c\n" +
 	"\x18TYPE_SHELL_REQUIRED_FLAG\x10\x01\x12\x15\n" +
 	"\x11TYPE_TOOL_INVOKED\x10\x02\x12\x17\n" +
 	"\x13TYPE_FILE_RETRIEVED\x10\x03\x12\x12\n" +
-	"\x0eTYPE_LLM_JUDGE\x10\x04\"S\n" +
+	"\x0eTYPE_LLM_JUDGE\x10\x04\x12\x18\n" +
+	"\x14TYPE_CODEBLOCK_REGEX\x10\x05\"S\n" +
 	"\x06Result\x12\x12\n" +
 	"\x0eRESULT_UNKNOWN\x10\x00\x12\x0f\n" +
 	"\vRESULT_TRUE\x10\x01\x12\x10\n" +
@@ -645,7 +713,7 @@ func file_cassie_eval_proto_rawDescGZIP() []byte {
 }
 
 var file_cassie_eval_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_cassie_eval_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_cassie_eval_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_cassie_eval_proto_goTypes = []any{
 	(Assertion_Type)(0),                 // 0: Assertion.Type
 	(Assertion_Result)(0),               // 1: Assertion.Result
@@ -656,6 +724,7 @@ var file_cassie_eval_proto_goTypes = []any{
 	(*Assertion_ToolInvocation)(nil),    // 6: Assertion.ToolInvocation
 	(*Assertion_FileRetrieval)(nil),     // 7: Assertion.FileRetrieval
 	(*Assertion_LLMJudge)(nil),          // 8: Assertion.LLMJudge
+	(*Assertion_CodeblockRegex)(nil),    // 9: Assertion.CodeblockRegex
 }
 var file_cassie_eval_proto_depIdxs = []int32{
 	0, // 0: Assertion.type:type_name -> Assertion.Type
@@ -664,13 +733,14 @@ var file_cassie_eval_proto_depIdxs = []int32{
 	6, // 3: Assertion.tool_invocation:type_name -> Assertion.ToolInvocation
 	7, // 4: Assertion.file_retrieval:type_name -> Assertion.FileRetrieval
 	8, // 5: Assertion.llm_judge:type_name -> Assertion.LLMJudge
-	2, // 6: EvalSample.assertions:type_name -> Assertion
-	3, // 7: EvalDataset.samples:type_name -> EvalSample
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	9, // 6: Assertion.codeblock_regex:type_name -> Assertion.CodeblockRegex
+	2, // 7: EvalSample.assertions:type_name -> Assertion
+	3, // 8: EvalDataset.samples:type_name -> EvalSample
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_cassie_eval_proto_init() }
@@ -683,6 +753,7 @@ func file_cassie_eval_proto_init() {
 		(*Assertion_ToolInvocation_)(nil),
 		(*Assertion_FileRetrieval_)(nil),
 		(*Assertion_LlmJudge)(nil),
+		(*Assertion_CodeblockRegex_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -690,7 +761,7 @@ func file_cassie_eval_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cassie_eval_proto_rawDesc), len(file_cassie_eval_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

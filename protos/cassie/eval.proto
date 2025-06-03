@@ -15,6 +15,7 @@ message Assertion {
     TYPE_TOOL_INVOKED        = 2;  // Was a tool invoked (or not)?
     TYPE_FILE_RETRIEVED      = 3;  // Was a file retrieved (or not)?
     TYPE_LLM_JUDGE           = 4;  // Ask an LLM to grade the final answer.
+    TYPE_CODEBLOCK_REGEX     = 5;  // Does at least one code block match the regex?
   }
 
   // Outcome of an assertion after a test run.
@@ -35,6 +36,7 @@ message Assertion {
     ToolInvocation    tool_invocation     = 5;
     FileRetrieval     file_retrieval      = 6;
     LLMJudge          llm_judge           = 7;
+    CodeblockRegex    codeblock_regex     = 8;
   }
 
   // -------------------- Payload messages ---------------------------------
@@ -59,6 +61,11 @@ message Assertion {
   // Asks an LLM to grade the assistant’s answer.
   message LLMJudge {
     string    prompt = 1;
+  }
+
+  // Checks if at least one code block matches the regex.
+  message CodeblockRegex {
+    string regex = 1; // The regex pattern to match against code blocks
   }
 }
 

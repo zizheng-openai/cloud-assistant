@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -91,11 +92,43 @@ func (l llmJudge) Assert(ctx context.Context, as *cassie.Assertion, blocks map[s
 	return nil
 }
 
+type codeblockRegex struct{}
+
+func (c codeblockRegex) Assert(ctx context.Context, as *cassie.Assertion, blocks map[string]*cassie.Block) error {
+	regexPattern := as.GetCodeblockRegex().Regex
+	if regexPattern == "" {
+		as.Result = cassie.Assertion_RESULT_SKIPPED
+		return nil
+	}
+	re, err := regexp.Compile(regexPattern)
+	if err != nil {
+		as.Result = cassie.Assertion_RESULT_FALSE
+		return errors.Wrapf(err, "invalid regex pattern: %s", regexPattern)
+	}
+	matched := false
+	for _, block := range blocks {
+		if block.Kind == cassie.BlockKind_CODE {
+			if re.MatchString(block.Contents) {
+				matched = true
+				break
+			}
+		}
+	}
+	if matched {
+		as.Result = cassie.Assertion_RESULT_TRUE
+	} else {
+		as.Result = cassie.Assertion_RESULT_FALSE
+	}
+	fmt.Println("codeblockRegex", as.Name, as.Result)
+	return nil
+}
+
 var registry = map[cassie.Assertion_Type]Asserter{
 	cassie.Assertion_TYPE_SHELL_REQUIRED_FLAG: shellRequiredFlag{},
 	cassie.Assertion_TYPE_TOOL_INVOKED:        toolInvocation{},
 	cassie.Assertion_TYPE_FILE_RETRIEVED:      fileRetrieved{},
 	cassie.Assertion_TYPE_LLM_JUDGE:           llmJudge{},
+	cassie.Assertion_TYPE_CODEBLOCK_REGEX:     codeblockRegex{},
 }
 
 func EvalFromProto(protoFile string, cfg *config.CloudAssistantConfig) (map[string]*cassie.Block, error) {
