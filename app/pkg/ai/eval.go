@@ -40,11 +40,11 @@ func (s shellRequiredFlag) Assert(ctx context.Context, as *cassie.Assertion, blo
 			if strings.Contains(block.Contents, command) { // Check if the code block contains the target command
 				if !contain_command {
 					contain_command = true
-					as.Result = cassie.Assertion_RESULT_PASSED // Set to PASSED if the command is present (may be overridden below)
+					as.Result = cassie.Assertion_RESULT_TRUE // Set to PASSED if the command is present (may be overridden below)
 				}
 				for _, flag := range flags { // If the command is present, check for all required flags
 					if !strings.Contains(block.Contents, flag) {
-						as.Result = cassie.Assertion_RESULT_FAILED // Set to FAILED if any required flag is missing
+						as.Result = cassie.Assertion_RESULT_FALSE // Set to FAILED if any required flag is missing
 					}
 				}
 			}

@@ -29,7 +29,7 @@ func TestShellRequiredFlag_Pass(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if assertion.Result != cassie.Assertion_RESULT_PASSED {
+	if assertion.Result != cassie.Assertion_RESULT_TRUE {
 		t.Errorf("expected PASSED, got %v", assertion.Result)
 	}
 }
@@ -56,7 +56,7 @@ func TestShellRequiredFlag_Fail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if assertion.Result != cassie.Assertion_RESULT_FAILED {
+	if assertion.Result != cassie.Assertion_RESULT_FALSE {
 		t.Errorf("expected FAILED, got %v", assertion.Result)
 	}
 }
