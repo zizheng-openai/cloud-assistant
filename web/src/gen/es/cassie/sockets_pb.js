@@ -4,24 +4,32 @@
 
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv1";
 import { file_runme_runner_v2_runner } from "../runme/runner/v2/runner_pb";
+import { file_google_rpc_code } from "../google/rpc/code_pb";
 
 /**
  * Describes the file cassie/sockets.proto.
  */
 export const file_cassie_sockets = /*@__PURE__*/
-  fileDesc("ChRjYXNzaWUvc29ja2V0cy5wcm90byJWCg1Tb2NrZXRSZXF1ZXN0EjoKD2V4ZWN1dGVfcmVxdWVzdBgBIAEoCzIfLnJ1bm1lLnJ1bm5lci52Mi5FeGVjdXRlUmVxdWVzdEgAQgkKB3BheWxvYWQiWQoOU29ja2V0UmVzcG9uc2USPAoQZXhlY3V0ZV9yZXNwb25zZRgBIAEoCzIgLnJ1bm1lLnJ1bm5lci52Mi5FeGVjdXRlUmVzcG9uc2VIAEIJCgdwYXlsb2FkQkRCDFNvY2tldHNQcm90b1ABWjJnaXRodWIuY29tL2psZXdpL2Nsb3VkLWFzc2lzdGFudC9wcm90b3MvZ2VuL2Nhc3NpZWIGcHJvdG8z", [file_runme_runner_v2_runner]);
+  fileDesc("ChRjYXNzaWUvc29ja2V0cy5wcm90byI/CgxTb2NrZXRTdGF0dXMSHgoEY29kZRgBIAEoDjIQLmdvb2dsZS5ycGMuQ29kZRIPCgdtZXNzYWdlGAIgASgJIm4KDVNvY2tldFJlcXVlc3QSOgoPZXhlY3V0ZV9yZXF1ZXN0GAEgASgLMh8ucnVubWUucnVubmVyLnYyLkV4ZWN1dGVSZXF1ZXN0SAASFgoNYXV0aG9yaXphdGlvbhjIASABKAlCCQoHcGF5bG9hZCJ5Cg5Tb2NrZXRSZXNwb25zZRI8ChBleGVjdXRlX3Jlc3BvbnNlGAEgASgLMiAucnVubWUucnVubmVyLnYyLkV4ZWN1dGVSZXNwb25zZUgAEh4KBnN0YXR1cxjIASABKAsyDS5Tb2NrZXRTdGF0dXNCCQoHcGF5bG9hZEJEQgxTb2NrZXRzUHJvdG9QAVoyZ2l0aHViLmNvbS9qbGV3aS9jbG91ZC1hc3Npc3RhbnQvcHJvdG9zL2dlbi9jYXNzaWViBnByb3RvMw", [file_runme_runner_v2_runner, file_google_rpc_code]);
+
+/**
+ * Describes the message SocketStatus.
+ * Use `create(SocketStatusSchema)` to create a new message.
+ */
+export const SocketStatusSchema = /*@__PURE__*/
+  messageDesc(file_cassie_sockets, 0);
 
 /**
  * Describes the message SocketRequest.
  * Use `create(SocketRequestSchema)` to create a new message.
  */
 export const SocketRequestSchema = /*@__PURE__*/
-  messageDesc(file_cassie_sockets, 0);
+  messageDesc(file_cassie_sockets, 1);
 
 /**
  * Describes the message SocketResponse.
  * Use `create(SocketResponseSchema)` to create a new message.
  */
 export const SocketResponseSchema = /*@__PURE__*/
-  messageDesc(file_cassie_sockets, 1);
+  messageDesc(file_cassie_sockets, 2);
 
