@@ -38,9 +38,16 @@ This document explains **Level 1 evaluations** for the AI SRE project—simple, 
 
 ## 3 — Quick Start
 
-```bash
-# Build the CLI
-make build
+### Build the CLI
+`make build`
 
-# Run the eval against a local Cassie endpoint
-./.build/cas eval dataset.pb http://localhost:8080
+### Edit `config.yaml` to set your Cassie session cookie
+```
+cloudAssistant:
+  vectorStores:
+    - vs_xxxxx
+  cassieCookie: <your-cassie-session-cookie>
+```
+
+### Run the eval against a local Cassie endpoint
+`./.build/cas eval dataset.pb http://localhost:8080`
