@@ -8,8 +8,8 @@ import (
 
 func NewEvalCmd() *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "eval <proto-file> <target-url>",
-		Short: "Run evaluation using a proto file and target URL",
+		Use:   "eval <yaml-file> <target-url>",
+		Short: "Run evaluation using a YAML file and target URL",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			app := application.NewApp()
@@ -17,7 +17,7 @@ func NewEvalCmd() *cobra.Command {
 				return err
 			}
 			app.Config.CloudAssistant.TargetURL = args[1]
-			blocks, err := ai.EvalFromProto(args[0], app.Config.CloudAssistant)
+			blocks, err := ai.EvalFromYAML(args[0], app.Config.CloudAssistant)
 			if err != nil {
 				return err
 			}

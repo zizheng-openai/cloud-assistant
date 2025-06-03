@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"golang.org/x/net/http2"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"gopkg.in/yaml.v3"
 )
 
 type Asserter interface {
@@ -217,6 +219,41 @@ func runInference(input string, cfg *config.CloudAssistantConfig) (map[string]*c
 
 	if stream.Err() != nil {
 		return blocks, errors.Wrapf(stream.Err(), "Error receiving response")
+	}
+	return blocks, nil
+}
+
+// EvalFromYAML reads a YAML file, converts it to JSON, and unmarshals it into cassie.EvalDataset using protojson.
+func EvalFromYAML(yamlFile string, cfg *config.CloudAssistantConfig) (map[string]*cassie.Block, error) {
+	data, err := os.ReadFile(yamlFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read yaml file %q", yamlFile)
+	}
+	// Unmarshal YAML to generic map
+	var yamlObj interface{}
+	if err := yaml.Unmarshal(data, &yamlObj); err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal yaml file %q", yamlFile)
+	}
+	// Convert YAML to JSON
+	jsonData, err := json.Marshal(yamlObj)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to marshal yaml to json for file %q", yamlFile)
+	}
+	var dataset cassie.EvalDataset
+	if err := protojson.Unmarshal(jsonData, &dataset); err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal json to proto for file %q", yamlFile)
+	}
+	blocks, err := runInference(dataset.Samples[0].InputText, cfg)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to run inference")
+	}
+	for _, sample := range dataset.Samples {
+		for _, assertion := range sample.Assertions {
+			err := registry[assertion.Type].Assert(context.TODO(), assertion, blocks)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to assert %q", assertion.Name)
+			}
+		}
 	}
 	return blocks, nil
 }
