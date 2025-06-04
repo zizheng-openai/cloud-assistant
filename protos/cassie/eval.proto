@@ -58,7 +58,7 @@ message Assertion {
     string file_name = 2;                         // Optional human-readable name
   }
 
-  // Asks an LLM to grade the assistant’s answer.
+  // Asks an LLM to grade the assistant's answer.
   message LLMJudge {
     string    prompt = 1;
   }
@@ -81,4 +81,39 @@ message EvalSample {
 
 message EvalDataset{
   repeated EvalSample samples = 1;
+}
+
+
+// -------------------------------------------------------------------------
+// Experiment – Configuration for running an evaluation experiment
+// -------------------------------------------------------------------------
+
+message ObjectMeta {
+  // Name of the resource, e.g. "experiment-test".
+  string name = 1;
+}
+
+message ExperimentSpec {
+  // Path to the YAML dataset to evaluate.
+  string dataset_path       = 1 [json_name = "datasetPath"];
+
+  // Directory where experiment reports will be written.
+  string output_dir         = 2 [json_name = "outputDir"];
+
+  // URL of the backend inference service to call during evaluation.
+  string inference_endpoint = 3 [json_name = "inferenceEndpoint"];
+}
+
+message Experiment {
+  // API version of the resource, e.g. "cloudassistant.io/v1alpha1".
+  string     api_version = 1 [json_name = "apiVersion"];
+
+  // Kind of the resource. Always "Experiment" for this CRD.
+  string     kind        = 2;
+
+  // Standard Kubernetes object metadata (name, labels, annotations, etc.).
+  ObjectMeta metadata    = 3;
+
+  // User-defined configuration for the experiment.
+  ExperimentSpec spec    = 4;
 }
