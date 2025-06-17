@@ -23,6 +23,8 @@ openai:
 cloudAssistant:
     vectorStores:
         - ${VSID}
+webApp:
+    reconnect: true # Set to false to disable attemps to auto-reconnect
 assistantServer:
     bindAddress: ""
     port: 0

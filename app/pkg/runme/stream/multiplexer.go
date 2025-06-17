@@ -85,7 +85,7 @@ func (m *Multiplexer) receiveRequests(streamID string, sc *Connection) {
 	defer m.streams.removeStream(ctx, streamID)
 	log := logs.FromContextWithTrace(ctx)
 
-	if err := m.streams.receive(ctx, streamID, sc); err != nil {
+	if err := m.streams.receive(ctx, streamID, m.runID, sc); err != nil {
 		closeErr, ok := err.(*websocket.CloseError)
 		if !ok {
 			log.Error(err, "Unexpected error while receiving socket requests")
@@ -105,8 +105,6 @@ func (m *Multiplexer) close() {
 	m.setInflight(nil)
 	// Wait for 30s to give the client a chance to close the connection.
 	time.Sleep(30 * time.Second)
-	// Delay close because clients might still be connected.
-	close(m.authedSocketRequests)
 	// With Runme's execution finished we can close all websocket connections.
 	m.streams.close(m.ctx)
 }

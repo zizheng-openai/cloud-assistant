@@ -19,6 +19,9 @@ import (
 type Streams struct {
 	auth *iam.AuthContext
 
+	// The known ID is the cell/block ID contained in requests. Once we have a known ID, we can reject requests with mismatched IDs.
+	knownID string
+
 	mu    sync.RWMutex
 	conns map[string]*Connection
 
@@ -29,6 +32,7 @@ type Streams struct {
 func NewStreams(ctx context.Context, auth *iam.AuthContext, socketRequests chan *cassie.SocketRequest) *Streams {
 	return &Streams{
 		auth:                 auth,
+		knownID:              "",
 		conns:                make(map[string]*Connection, 1),
 		authedSocketRequests: socketRequests,
 	}
@@ -78,7 +82,7 @@ func (s *Streams) close(ctx context.Context) {
 	}
 }
 
-func (s *Streams) receive(ctx context.Context, streamID string, sc *Connection) error {
+func (s *Streams) receive(ctx context.Context, streamID string, runID string, sc *Connection) error {
 	log := logs.FromContextWithTrace(ctx)
 
 	for {
@@ -90,11 +94,45 @@ func (s *Streams) receive(ctx context.Context, streamID string, sc *Connection) 
 		}
 
 		log.Info("Received socket request", "streamID", streamID, "runID", req.GetRunId())
+
 		// Return error to reject the connection if the socket request is not authorized.
 		if err := s.auth.AuthorizeRequest(ctx, req); err != nil {
 			log.Error(err, "Could not authorize request", "streamID", streamID, "runID", req.GetRunId())
 			sc.ErrorMessage(ctx, code.Code_PERMISSION_DENIED, "Unauthorized request")
 			return err
+		}
+
+		// Skip if request is explicitly ping-only.
+		if req.GetPing() == nil && req.GetPayload() != nil {
+			// Check if context runID matches the authorized one in the request.
+			if req.GetRunId() != runID {
+				log.Error(err, "RunID mismatch", "streamID", streamID, "runID", req.GetRunId(), "expectedRunID", runID)
+				sc.ErrorMessage(ctx, code.Code_PERMISSION_DENIED, "RunID mismatch")
+				return err
+			}
+
+			// Set the known ID if it is not already set.
+			if s.knownID == "" {
+				s.knownID = req.GetKnownId()
+			}
+
+			// Check if the knownID matches the one in the request.
+			if req.GetKnownId() != s.knownID {
+				log.Error(err, "KnownID mismatch", "streamID", streamID, "knownID", req.GetKnownId(), "expectedKnownID", s.knownID)
+				sc.ErrorMessage(ctx, code.Code_PERMISSION_DENIED, "KnownID mismatch")
+				return err
+			}
+		}
+
+		// Handle protocol-level ping
+		if req.GetPing() != nil {
+			pong := &cassie.Pong{Timestamp: req.GetPing().GetTimestamp()}
+			resp := &cassie.SocketResponse{Pong: pong}
+			err := sc.WriteSocketResponse(ctx, resp)
+			if err != nil {
+				log.Error(err, "Could not send pong response")
+			}
+			continue // Do not forward ping to multiplexer
 		}
 
 		// Only authorized requests are forwarded to the multiplexer.

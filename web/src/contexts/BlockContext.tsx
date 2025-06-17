@@ -25,6 +25,11 @@ type BlockContextType = {
     files: Block[]
   }
 
+  // sequence is a monotonically increasing number that is used to track the order of blocks
+  sequence: number
+  // incrementSequence increments the sequence number
+  incrementSequence: () => void
+
   // Define additional functions to update the state
   // This way they can be set in the provider and passed down to the components
   sendOutputBlock: (outputBlock: Block) => Promise<void>
@@ -55,11 +60,16 @@ interface BlockState {
 }
 
 export const BlockProvider = ({ children }: { children: ReactNode }) => {
+  const [sequence, setSequence] = useState(0)
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [previousResponseId, setPreviousResponseId] = useState<
     string | undefined
   >()
+
+  const incrementSequence = () => {
+    setSequence((prev) => prev + 1)
+  }
 
   const { client } = useAgentClient()
   const [state, setState] = useState<BlockState>({
@@ -123,7 +133,7 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
     })
 
     req.openaiAccessToken = accessToken.accessToken
-    if (accessToken.accessToken == '') {
+    if (!accessToken.accessToken) {
       console.error('No access token found')
     }
 
@@ -228,6 +238,8 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
     <BlockContext.Provider
       value={{
         useColumns,
+        sequence,
+        incrementSequence,
         sendOutputBlock,
         createOutputBlock,
         sendUserBlock,

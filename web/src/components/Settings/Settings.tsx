@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Box, Button, Callout, Flex, Text, TextArea } from '@radix-ui/themes'
@@ -11,12 +11,15 @@ export default function Settings() {
     useSettings()
   const [saveSettingsPending, setSaveSettingsPending] = useState(false)
   const [endpoint, setEndpoint] = useState(settings.agentEndpoint)
-  const [runnerEndpoint, setRunnerEndpoint] = useState(settings.runnerEndpoint)
+  const [runnerEndpoint, setRunnerEndpoint] = useState(settings.webApp.runner)
 
   const handleSave = () => {
     updateSettings({
       agentEndpoint: endpoint,
-      runnerEndpoint: runnerEndpoint,
+      webApp: {
+        runner: runnerEndpoint,
+        reconnect: settings.webApp.reconnect,
+      },
     })
     setSaveSettingsPending(true)
   }
@@ -33,12 +36,19 @@ export default function Settings() {
 
   const handleRevert = () => {
     setEndpoint(defaultSettings.agentEndpoint)
-    setRunnerEndpoint(defaultSettings.runnerEndpoint)
+    setRunnerEndpoint(defaultSettings.webApp.runner)
   }
+
+  const runnerErrorMessage = useMemo(() => {
+    if (!(runnerError instanceof Error)) {
+      return undefined
+    }
+    return runnerError.message
+  }, [runnerError])
 
   const isChanged =
     endpoint !== settings.agentEndpoint ||
-    runnerEndpoint !== settings.runnerEndpoint
+    runnerEndpoint !== settings.webApp.runner
 
   return (
     <Box className="w-full mx-auto">
@@ -78,7 +88,8 @@ export default function Settings() {
             {runnerError && (
               <Callout.Root color="red">
                 <Callout.Text className="font-bold">
-                  Runner error: {runnerError.message}
+                  Runner error
+                  {runnerErrorMessage ? ': ' + runnerErrorMessage : ''}
                 </Callout.Text>
               </Callout.Root>
             )}

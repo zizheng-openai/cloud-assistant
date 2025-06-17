@@ -1,10 +1,10 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Box, Button, Card, ScrollArea, Text } from '@radix-ui/themes'
-import { ulid } from 'ulid'
 
 import { Block, BlockOutputKind, useBlock } from '../../contexts/BlockContext'
 import Console from '../Runme/Console'
+import { genRunID } from '../Runme/Streams'
 import Editor from './Editor'
 import {
   ErrorIcon,
@@ -44,6 +44,7 @@ const CodeConsole = memo(
   ({
     blockID,
     runID,
+    sequence,
     value,
     className,
     takeFocus = false,
@@ -55,6 +56,7 @@ const CodeConsole = memo(
   }: {
     blockID: string
     runID: string
+    sequence: number
     value: string
     className?: string
     takeFocus?: boolean
@@ -70,6 +72,7 @@ const CodeConsole = memo(
         <Console
           blockID={blockID}
           runID={runID}
+          sequence={sequence}
           className={className}
           rows={14}
           commands={value.split('\n')}
@@ -96,7 +99,8 @@ const CodeConsole = memo(
 
 // Action is an editor and an optional Runme console
 function Action({ block }: { block: Block }) {
-  const { createOutputBlock, sendOutputBlock } = useBlock()
+  const { createOutputBlock, sendOutputBlock, incrementSequence, sequence } =
+    useBlock()
   const [editorValue, setEditorValue] = useState(block.contents)
   const [takeFocus, setTakeFocus] = useState(false)
   const [exec, setExec] = useState<{ value: string; runID: string }>({
@@ -109,6 +113,7 @@ function Action({ block }: { block: Block }) {
   const [stdout, setStdout] = useState<string>('')
   const [stderr, setStderr] = useState<string>('')
   const [lastRunID, setLastRunID] = useState<string>('')
+  const [lastSequence, setLastSequence] = useState<number | null>(null)
 
   const runCode = useCallback(
     (takeFocus = false) => {
@@ -117,9 +122,10 @@ function Action({ block }: { block: Block }) {
       setPid(null)
       setExitCode(null)
       setTakeFocus(takeFocus)
-      setExec({ value: editorValue, runID: ulid() })
+      incrementSequence()
+      setExec({ value: editorValue, runID: genRunID() })
     },
-    [editorValue]
+    [editorValue, incrementSequence]
   )
 
   // Listen for runCodeBlock events
@@ -201,20 +207,42 @@ function Action({ block }: { block: Block }) {
   }, [sendOutputBlock, finalOutputBlock, exec.runID, lastRunID])
 
   useEffect(() => {
+    if (lastRunID === exec.runID) {
+      return
+    }
+    setLastSequence(sequence)
+  }, [sequence, exec.runID, lastRunID])
+
+  useEffect(() => {
     setEditorValue(block.contents)
   }, [block.contents])
+
+  const sequenceLabel = useMemo(() => {
+    if (!lastSequence) {
+      return ' '
+    }
+    return lastSequence.toString()
+  }, [lastSequence])
 
   return (
     <div>
       <Box className="w-full p-2">
         <div className="flex justify-between items-top">
-          <RunActionButton
-            pid={pid}
-            exitCode={exitCode}
-            onClick={() => {
-              runCode(true)
-            }}
-          />
+          <div className="flex flex-col items-center">
+            <RunActionButton
+              pid={pid}
+              exitCode={exitCode}
+              onClick={() => {
+                runCode(true)
+              }}
+            />
+            <Text
+              size="2"
+              className="mt-1 p-2 font-bold text-gray-400 font-mono"
+            >
+              [{sequenceLabel}]
+            </Text>
+          </div>
           <Card className="whitespace-nowrap overflow-hidden flex-1 ml-2">
             <Editor
               key={block.id}
@@ -227,12 +255,13 @@ function Action({ block }: { block: Block }) {
                 setExitCode(null)
                 setEditorValue(v)
               }}
-              onEnter={runCode}
+              onEnter={() => runCode()}
             />
             <CodeConsole
               key={exec.runID}
               runID={exec.runID}
               blockID={block.id}
+              sequence={lastSequence || 0}
               value={exec.value}
               takeFocus={takeFocus}
               onStdout={(data: Uint8Array) =>
