@@ -17,6 +17,7 @@ import {
   TypingBlock,
   useBlock,
 } from '../../contexts/BlockContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import { SubmitQuestionIcon } from '../Actions/icons'
 
 type MessageProps = {
@@ -30,8 +31,19 @@ const MessageContainer = ({
   role: BlockRole
   children: React.ReactNode
 }) => {
-  const self = role === BlockRole.USER ? 'self-end' : 'self-start'
+  const { settings } = useSettings()
+
+  const self =
+    role === BlockRole.USER
+      ? settings.webApp.invertedOrder
+        ? 'self-start'
+        : 'self-end'
+      : settings.webApp.invertedOrder
+        ? 'self-end'
+        : 'self-start'
+
   const color = role === BlockRole.USER ? 'indigo' : 'gray'
+
   return (
     <Callout.Root
       highContrast
@@ -72,14 +84,15 @@ const AssistantMessage = ({ block }: { block: Block }) => {
 const CodeMessage = memo(
   ({
     block,
-    isLastCodeBlock,
+    isRecentCodeBlock,
     onClick,
   }: {
     block: Block
-    isLastCodeBlock?: boolean
+    isRecentCodeBlock?: boolean
     onClick?: () => void
   }) => {
     const { runCodeBlock } = useBlock()
+    const { settings } = useSettings()
     const firstLine = block.contents.split(/&&|;|\n|\\n/)[0]
 
     const handleClick = () => {
@@ -90,10 +103,19 @@ const CodeMessage = memo(
       }
     }
 
+    const justification = settings.webApp.invertedOrder
+      ? 'justify-end'
+      : 'justify-start'
+
+    const shortcut = (
+      <span className="text-xs text-gray-400 p-2">Press CTRL+ENTER to run</span>
+    )
+
     return (
-      <div className="self-start flex flex-row items-center gap-1">
+      <div className={`flex ${justification} items-center h-full`}>
+        {isRecentCodeBlock && settings.webApp.invertedOrder && shortcut}
         <div
-          className="flex items-center gap-2 m-1 p-2 bg-[#1e1e1e] rounded-md max-w-[80%] cursor-pointer"
+          className="flex items-center m-1 p-2 bg-[#1e1e1e] rounded-md max-w-[80%] cursor-pointer"
           onClick={handleClick}
         >
           <svg
@@ -128,9 +150,7 @@ const CodeMessage = memo(
             {firstLine}
           </span>
         </div>
-        {isLastCodeBlock && (
-          <span className="text-xs text-gray-400">Press CTRL+ENTER to run</span>
-        )}
+        {isRecentCodeBlock && !settings.webApp.invertedOrder && shortcut}
       </div>
     )
   },
@@ -139,21 +159,21 @@ const CodeMessage = memo(
       prevProps.block.id === nextProps.block.id &&
       JSON.stringify(prevProps.block.contents) ===
         JSON.stringify(nextProps.block.contents) &&
-      prevProps.isLastCodeBlock === nextProps.isLastCodeBlock
+      prevProps.isRecentCodeBlock === nextProps.isRecentCodeBlock
     )
   }
 )
 
 const Message = ({
   block,
-  isLastCodeBlock,
-}: MessageProps & { isLastCodeBlock?: boolean }) => {
+  isRecentCodeBlock,
+}: MessageProps & { isRecentCodeBlock?: boolean }) => {
   if (block.kind === BlockKind.CODE) {
     return (
       <CodeMessage
         key={block.id}
         block={block}
-        isLastCodeBlock={isLastCodeBlock}
+        isRecentCodeBlock={isRecentCodeBlock}
       />
     )
   }
@@ -169,59 +189,43 @@ const Message = ({
 }
 
 const ChatMessages = () => {
-  const { useColumns, isTyping, runCodeBlock } = useBlock()
+  const { useColumns, isTyping } = useBlock()
+  const { settings } = useSettings()
   const { chat } = useColumns()
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
-  const outerDivRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
+  useEffect(() => {
+    if (settings.webApp.invertedOrder) {
+      return
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  }, [chat, settings.webApp.invertedOrder])
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [chat])
+  const recentIndex = settings.webApp.invertedOrder ? 0 : chat.length - 1
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === 'Enter') {
-        const lastBlock = chat[chat.length - 1]
-        if (lastBlock?.kind === BlockKind.CODE) {
-          runCodeBlock(lastBlock)
-        }
-      }
-    }
+  const typingJustification = settings.webApp.invertedOrder
+    ? 'justify-end'
+    : 'justify-start'
 
-    const outerDiv = outerDivRef.current
-    if (outerDiv) {
-      outerDiv.addEventListener('keydown', handleKeyDown)
-      return () => outerDiv.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [chat, runCodeBlock])
-
-  if (chat.length === 0) return null
+  const typingBlock = (
+    <div className={`flex ${typingJustification} items-center h-full`}>
+      <Message block={TypingBlock} />
+    </div>
+  )
 
   return (
-    <div
-      ref={outerDivRef}
-      className="overflow-y-clip p-1 flex flex-col order-2 whitespace-pre-wrap"
-    >
+    <div className="overflow-y-clip p-1 flex flex-col whitespace-pre-wrap">
+      {isTyping && settings.webApp.invertedOrder && typingBlock}
       {chat.map((msg: Block, index: number) => (
         <Message
           key={index}
           block={msg}
-          isLastCodeBlock={
-            msg.kind === BlockKind.CODE &&
-            index === chat.length - 1 &&
-            !isTyping
+          isRecentCodeBlock={
+            msg.kind === BlockKind.CODE && index === recentIndex && !isTyping
           }
         />
       ))}
-      {isTyping && (
-        <div className="flex justify-start items-center h-full">
-          <Message block={TypingBlock} />
-        </div>
-      )}
+      {isTyping && !settings.webApp.invertedOrder && typingBlock}
       <div ref={messagesEndRef} />
     </div>
   )
@@ -254,7 +258,7 @@ const ChatInput = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full order-1">
+    <form onSubmit={handleSubmit} className="flex w-full">
       <Flex className="w-full flex flex-nowrap items-start gap-4 m-2">
         <TextArea
           name="userInput"
@@ -278,24 +282,18 @@ const ChatInput = () => {
 
 function Chat() {
   const { useColumns, runCodeBlock } = useBlock()
+  const { settings } = useSettings()
   const { chat } = useColumns()
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const outerDivRef = useRef<HTMLDivElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [chat])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'Enter') {
-        const lastBlock = chat[chat.length - 1]
-        if (lastBlock?.kind === BlockKind.CODE) {
-          runCodeBlock(lastBlock)
+        const blockToRun = settings.webApp.invertedOrder
+          ? chat[0]
+          : chat[chat.length - 1]
+        if (blockToRun?.kind === BlockKind.CODE) {
+          runCodeBlock(blockToRun)
         }
       }
     }
@@ -305,7 +303,9 @@ function Chat() {
       outerDiv.addEventListener('keydown', handleKeyDown)
       return () => outerDiv.removeEventListener('keydown', handleKeyDown)
     }
-  }, [chat, runCodeBlock])
+  }, [chat, runCodeBlock, settings.webApp.invertedOrder])
+
+  const layout = settings.webApp.invertedOrder ? 'flex-col' : 'flex-col-reverse'
 
   return (
     <div ref={outerDivRef} className="flex flex-col h-full">
@@ -313,9 +313,18 @@ function Chat() {
         How can I help you?
       </Text>
       <ScrollArea type="auto" scrollbars="vertical" className="flex-1 p-4">
-        <div className="flex flex-col-reverse h-full w-full">
-          <ChatMessages />
-          <ChatInput />
+        <div className={`flex ${layout} h-full w-full`}>
+          {settings.webApp.invertedOrder ? (
+            <>
+              <ChatInput />
+              <ChatMessages />
+            </>
+          ) : (
+            <>
+              <ChatInput />
+              <ChatMessages />
+            </>
+          )}
         </div>
       </ScrollArea>
     </div>
