@@ -1,4 +1,11 @@
-import { ReactNode, createContext, useContext, useMemo, useState } from 'react'
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import { clone, create } from '@bufbuild/protobuf'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,7 +21,9 @@ import {
   GenerateRequest,
   GenerateRequestSchema,
 } from '../gen/es/cassie/blocks_pb'
+import { getAccessToken } from '../token'
 import { useClient as useAgentClient } from './AgentContext'
+import { useSettings } from './SettingsContext'
 
 type BlockContextType = {
   // useColumns returns arrays of blocks organized by their kind
@@ -23,6 +32,11 @@ type BlockContextType = {
     actions: Block[]
     files: Block[]
   }
+
+  // sequence is a monotonically increasing number that is used to track the order of blocks
+  sequence: number
+  // incrementSequence increments the sequence number
+  incrementSequence: () => void
 
   // Define additional functions to update the state
   // This way they can be set in the provider and passed down to the components
@@ -35,6 +49,8 @@ type BlockContextType = {
   isTyping: boolean
   // Function to run a code block
   runCodeBlock: (block: Block) => void
+  // Function to reset the session
+  resetSession: () => void
 }
 
 const BlockContext = createContext<BlockContextType | undefined>(undefined)
@@ -54,17 +70,37 @@ interface BlockState {
 }
 
 export const BlockProvider = ({ children }: { children: ReactNode }) => {
+  const { settings } = useSettings()
+  const [sequence, setSequence] = useState(0)
   const [isInputDisabled, setIsInputDisabled] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [previousResponseId, setPreviousResponseId] = useState<
     string | undefined
   >()
 
+  const incrementSequence = () => {
+    setSequence((prev) => prev + 1)
+  }
+
   const { client } = useAgentClient()
   const [state, setState] = useState<BlockState>({
     blocks: {},
     positions: [],
   })
+
+  const invertedOrder = useMemo(
+    () => settings.webApp.invertedOrder,
+    [settings.webApp.invertedOrder]
+  )
+
+  useEffect(() => {
+    setState((prev) => {
+      return {
+        ...prev,
+        positions: [...prev.positions].reverse(),
+      }
+    })
+  }, [invertedOrder])
 
   const chatBlocks = useMemo(() => {
     return state.positions
@@ -114,10 +150,17 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const streamGenerateResults = async (blocks: Block[]) => {
+    const accessToken = getAccessToken()
+
     const req: GenerateRequest = create(GenerateRequestSchema, {
       blocks,
       previousResponseId: previousResponseId,
     })
+
+    req.openaiAccessToken = accessToken.accessToken
+    if (!accessToken.accessToken) {
+      console.error('No access token found')
+    }
 
     try {
       const res = client!.generate(req)
@@ -174,12 +217,15 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
   const updateBlock = (block: Block) => {
     setState((prev) => {
       if (!prev.blocks[block.id]) {
+        const newPositions = invertedOrder
+          ? [block.id, ...prev.positions]
+          : [...prev.positions, block.id]
         return {
           blocks: {
             ...prev.blocks,
             [block.id]: block,
           },
-          positions: [...prev.positions, block.id],
+          positions: newPositions,
         }
       }
 
@@ -191,6 +237,12 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
         },
       }
     })
+  }
+
+  const resetSession = () => {
+    setState({ blocks: {}, positions: [] })
+    setSequence(0)
+    setPreviousResponseId(undefined)
   }
 
   const addCodeBlock = () => {
@@ -220,6 +272,8 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
     <BlockContext.Provider
       value={{
         useColumns,
+        sequence,
+        incrementSequence,
         sendOutputBlock,
         createOutputBlock,
         sendUserBlock,
@@ -227,6 +281,7 @@ export const BlockProvider = ({ children }: { children: ReactNode }) => {
         isInputDisabled,
         isTyping,
         runCodeBlock,
+        resetSession,
       }}
     >
       {children}

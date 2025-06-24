@@ -8,18 +8,26 @@ import {
   useState,
 } from 'react'
 
-// import { getTokenValue } from '../token'
+import { Subscription } from 'rxjs'
+import { ulid } from 'ulid'
+
+import Streams, {
+  Heartbeat,
+  StreamError,
+  genRunID,
+} from '../components/Runme/Streams'
+import { WebAppConfigJson } from '../gen/es/cassie/config/webapp_pb'
 
 interface Settings {
   agentEndpoint: string
-  runnerEndpoint: string
   requireAuth: boolean
+  webApp: Required<WebAppConfigJson>
 }
 
 interface SettingsContextType {
   checkRunnerAuth: () => void
   defaultSettings: Settings
-  runnerError: Error | null
+  runnerError: StreamError | null
   settings: Settings
   updateSettings: (newSettings: Partial<Settings>) => void
 }
@@ -40,9 +48,7 @@ export const useSettings = () => {
 interface SettingsProviderProps {
   children: ReactNode
   requireAuth?: boolean
-  webApp?: {
-    runner?: string
-  }
+  webApp?: WebAppConfigJson
 }
 
 export const SettingsProvider = ({
@@ -50,7 +56,7 @@ export const SettingsProvider = ({
   requireAuth,
   webApp,
 }: SettingsProviderProps) => {
-  const [runnerError] = useState<Error | null>(null)
+  const [runnerError, setRunnerError] = useState<StreamError | null>(null)
 
   const defaultSettings: Settings = useMemo(() => {
     const isLocalhost = window.location.hostname === 'localhost'
@@ -58,18 +64,22 @@ export const SettingsProvider = ({
     const isVite = window.location.port === '5173'
     const isDev = isLocalhost && isHttp && isVite
 
-    let runnerLocation = new URL(window.location.href)
-    // Overwrite runnerEndpoint if webApp.runner is provided
+    let runnerEndpoint = new URL(window.location.href)
+    // Overwrite runner if webApp.runner is provided
     if (webApp?.runner) {
-      runnerLocation = new URL(webApp.runner)
+      runnerEndpoint = new URL(webApp.runner)
     }
 
     const baseSettings: Settings = {
-      agentEndpoint: isDev ? 'http://localhost:8080' : window.location.origin,
-      runnerEndpoint: isDev
-        ? 'ws://localhost:8080/ws'
-        : `${runnerLocation.protocol === 'https:' ? 'wss:' : 'ws:'}//${runnerLocation.host}/ws`,
       requireAuth: false,
+      agentEndpoint: isDev ? 'http://localhost:8080' : window.location.origin,
+      webApp: {
+        runner: isDev
+          ? 'ws://localhost:8080/ws'
+          : `${runnerEndpoint.protocol === 'https:' ? 'wss:' : 'ws:'}//${runnerEndpoint.host}/ws`,
+        reconnect: webApp?.reconnect ?? true,
+        invertedOrder: webApp?.invertedOrder ?? false,
+      },
     }
 
     // Override requireAuth if provided
@@ -82,8 +92,17 @@ export const SettingsProvider = ({
 
   const [settings, setSettings] = useState<Settings>(() => {
     const savedSettings = localStorage.getItem('cloudAssistantSettings')
+    const savedSettingsJson = savedSettings ? JSON.parse(savedSettings) : {}
+    // always use the default reconnect value
+    if (
+      savedSettingsJson &&
+      savedSettingsJson.webApp &&
+      savedSettingsJson.webApp.reconnect !== undefined
+    ) {
+      savedSettingsJson.webApp.reconnect = defaultSettings.webApp.reconnect
+    }
     const mergedSettings = savedSettings
-      ? { ...defaultSettings, ...JSON.parse(savedSettings) }
+      ? { ...defaultSettings, ...savedSettingsJson }
       : defaultSettings
     return mergedSettings
   })
@@ -93,45 +112,59 @@ export const SettingsProvider = ({
   }, [settings])
 
   const checkRunnerAuth = useCallback(async () => {
-    // // Use the same endpoint as the WebSocket but with HTTP
-    // const endpoint = settings.runnerEndpoint
-    //   .replace('ws://', 'http://')
-    //   .replace('wss://', 'https://')
-    // const endpointUrl = new URL(endpoint)
-    // const token = getTokenValue()
-    // const headers: Record<string, string> = {
-    //   Accept: 'application/json',
-    // }
-    // if (token !== undefined) {
-    //   headers.Authorization = `Bearer ${token}`
-    // }
-    // try {
-    //   const response = await fetch(endpointUrl.toString(), {
-    //     method: 'HEAD',
-    //     credentials: 'include', // Include cookies for authentication
-    //     headers,
-    //   })
-    //   if (response.status === 401) {
-    //     setRunnerError(new Error(`${response.status}: ${response.statusText}`))
-    //   } else {
-    //     setRunnerError(null)
-    //   }
-    // } catch (error) {
-    //   console.error('Error checking runner endpoint:', error)
-    //   setRunnerError(error as Error)
-    // }
-  }, [])
-
-  useEffect(() => {
-    if (!settings.requireAuth) {
+    if (!settings.webApp.runner) {
       return
     }
 
+    // reset runner error
+    setRunnerError(null)
+
+    const stream = new Streams(
+      { knownID: `check_${ulid()}`, runID: genRunID(), sequence: 0 },
+      {
+        runnerEndpoint: settings.webApp.runner,
+        autoReconnect: false, // let it fail, we're interested in the error
+      }
+    )
+
+    const subs: Subscription[] = []
+    subs.push(
+      stream.errors.subscribe({
+        next: (error) => setRunnerError(error),
+      })
+    )
+    subs.push(
+      stream.connect(Heartbeat.INITIAL).subscribe((l) => {
+        if (l === null) {
+          return
+        }
+        console.log(
+          `Initial heartbeat latency for streamID ${l.streamID} (${l.readyState === 1 ? 'open' : 'closed'}): ${l.latency}ms`
+        )
+        stream.close()
+      })
+    )
+
+    return () => {
+      subs.forEach((sub) => sub.unsubscribe())
+    }
+  }, [settings.webApp.runner])
+
+  useEffect(() => {
     checkRunnerAuth()
-  }, [checkRunnerAuth, settings.requireAuth])
+  }, [checkRunnerAuth])
 
   const updateSettings = (newSettings: Partial<Settings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }))
+    setSettings((prev) => {
+      return {
+        ...prev,
+        ...newSettings,
+        webApp: {
+          ...prev.webApp,
+          ...newSettings.webApp,
+        },
+      }
+    })
   }
 
   return (

@@ -76,6 +76,96 @@ func (x *SocketStatus) GetMessage() string {
 	return ""
 }
 
+// Ping message for protocol-level keep-alive
+type Ping struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timestamp     int64                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Ping) Reset() {
+	*x = Ping{}
+	mi := &file_cassie_sockets_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Ping) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Ping) ProtoMessage() {}
+
+func (x *Ping) ProtoReflect() protoreflect.Message {
+	mi := &file_cassie_sockets_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Ping.ProtoReflect.Descriptor instead.
+func (*Ping) Descriptor() ([]byte, []int) {
+	return file_cassie_sockets_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Ping) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+// Pong message for protocol-level keep-alive response
+type Pong struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timestamp     int64                  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Pong) Reset() {
+	*x = Pong{}
+	mi := &file_cassie_sockets_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Pong) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Pong) ProtoMessage() {}
+
+func (x *Pong) ProtoReflect() protoreflect.Message {
+	mi := &file_cassie_sockets_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Pong.ProtoReflect.Descriptor instead.
+func (*Pong) Descriptor() ([]byte, []int) {
+	return file_cassie_sockets_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Pong) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
 // SocketRequest defines the message sent by the client over a websocket.
 // The request is a union of types that indicate the type of message.
 type SocketRequest struct {
@@ -84,15 +174,26 @@ type SocketRequest struct {
 	//
 	//	*SocketRequest_ExecuteRequest
 	Payload isSocketRequest_Payload `protobuf_oneof:"payload"`
+	// Protocol-level ping for frontend heartbeat. Unlike websocket servers which
+	// have a spec-integral heartbeat (https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#pings_and_pongs_the_heartbeat_of_websockets),
+	// we need to specify our own to cover client->server. The integral heartbeat
+	// only works server->client and the browser sandbox is not privy to it.
+	// Once the server receives a ping, it will send a pong response with the
+	// exact same timestamp.
+	Ping *Ping `protobuf:"bytes,100,opt,name=ping,proto3" json:"ping,omitempty"`
 	// Optional authorization header, similar to the HTTP Authorization header.
 	Authorization string `protobuf:"bytes,200,opt,name=authorization,proto3" json:"authorization,omitempty"`
+	// Optional Known ID to track the origin cell/block of the request.
+	KnownId string `protobuf:"bytes,210,opt,name=known_id,json=knownId,proto3" json:"known_id,omitempty"`
+	// Optional Run ID to track and resume execution.
+	RunId         string `protobuf:"bytes,220,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SocketRequest) Reset() {
 	*x = SocketRequest{}
-	mi := &file_cassie_sockets_proto_msgTypes[1]
+	mi := &file_cassie_sockets_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -104,7 +205,7 @@ func (x *SocketRequest) String() string {
 func (*SocketRequest) ProtoMessage() {}
 
 func (x *SocketRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cassie_sockets_proto_msgTypes[1]
+	mi := &file_cassie_sockets_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -117,7 +218,7 @@ func (x *SocketRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocketRequest.ProtoReflect.Descriptor instead.
 func (*SocketRequest) Descriptor() ([]byte, []int) {
-	return file_cassie_sockets_proto_rawDescGZIP(), []int{1}
+	return file_cassie_sockets_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SocketRequest) GetPayload() isSocketRequest_Payload {
@@ -136,9 +237,30 @@ func (x *SocketRequest) GetExecuteRequest() *v2.ExecuteRequest {
 	return nil
 }
 
+func (x *SocketRequest) GetPing() *Ping {
+	if x != nil {
+		return x.Ping
+	}
+	return nil
+}
+
 func (x *SocketRequest) GetAuthorization() string {
 	if x != nil {
 		return x.Authorization
+	}
+	return ""
+}
+
+func (x *SocketRequest) GetKnownId() string {
+	if x != nil {
+		return x.KnownId
+	}
+	return ""
+}
+
+func (x *SocketRequest) GetRunId() string {
+	if x != nil {
+		return x.RunId
 	}
 	return ""
 }
@@ -161,15 +283,24 @@ type SocketResponse struct {
 	//
 	//	*SocketResponse_ExecuteResponse
 	Payload isSocketResponse_Payload `protobuf_oneof:"payload"`
+	// Protocol-level pong for frontend heartbeat. Once the server receives
+	// a ping, it will send a pong response with the exact same timestamp.
+	// This allows the frontend (client) to detect if the connection is
+	// still alive or stale/inactive. See SocketRequest's ping for more details.
+	Pong *Pong `protobuf:"bytes,100,opt,name=pong,proto3" json:"pong,omitempty"`
 	// Optional socket-level status.
-	Status        *SocketStatus `protobuf:"bytes,200,opt,name=status,proto3" json:"status,omitempty"`
+	Status *SocketStatus `protobuf:"bytes,200,opt,name=status,proto3" json:"status,omitempty"`
+	// Optional Known ID to track the origin cell/block of the request.
+	KnownId string `protobuf:"bytes,210,opt,name=known_id,json=knownId,proto3" json:"known_id,omitempty"`
+	// Optional Run ID to track and resume execution.
+	RunId         string `protobuf:"bytes,220,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SocketResponse) Reset() {
 	*x = SocketResponse{}
-	mi := &file_cassie_sockets_proto_msgTypes[2]
+	mi := &file_cassie_sockets_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +312,7 @@ func (x *SocketResponse) String() string {
 func (*SocketResponse) ProtoMessage() {}
 
 func (x *SocketResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cassie_sockets_proto_msgTypes[2]
+	mi := &file_cassie_sockets_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,7 +325,7 @@ func (x *SocketResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SocketResponse.ProtoReflect.Descriptor instead.
 func (*SocketResponse) Descriptor() ([]byte, []int) {
-	return file_cassie_sockets_proto_rawDescGZIP(), []int{2}
+	return file_cassie_sockets_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SocketResponse) GetPayload() isSocketResponse_Payload {
@@ -213,11 +344,32 @@ func (x *SocketResponse) GetExecuteResponse() *v2.ExecuteResponse {
 	return nil
 }
 
+func (x *SocketResponse) GetPong() *Pong {
+	if x != nil {
+		return x.Pong
+	}
+	return nil
+}
+
 func (x *SocketResponse) GetStatus() *SocketStatus {
 	if x != nil {
 		return x.Status
 	}
 	return nil
+}
+
+func (x *SocketResponse) GetKnownId() string {
+	if x != nil {
+		return x.KnownId
+	}
+	return ""
+}
+
+func (x *SocketResponse) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
 }
 
 type isSocketResponse_Payload interface {
@@ -237,14 +389,24 @@ const file_cassie_sockets_proto_rawDesc = "" +
 	"\x14cassie/sockets.proto\x1a\x1crunme/runner/v2/runner.proto\x1a\x15google/rpc/code.proto\"N\n" +
 	"\fSocketStatus\x12$\n" +
 	"\x04code\x18\x01 \x01(\x0e2\x10.google.rpc.CodeR\x04code\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x8d\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"$\n" +
+	"\x04Ping\x12\x1c\n" +
+	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\"$\n" +
+	"\x04Pong\x12\x1c\n" +
+	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\"\xdc\x01\n" +
 	"\rSocketRequest\x12J\n" +
-	"\x0fexecute_request\x18\x01 \x01(\v2\x1f.runme.runner.v2.ExecuteRequestH\x00R\x0eexecuteRequest\x12%\n" +
-	"\rauthorization\x18\xc8\x01 \x01(\tR\rauthorizationB\t\n" +
-	"\apayload\"\x92\x01\n" +
+	"\x0fexecute_request\x18\x01 \x01(\v2\x1f.runme.runner.v2.ExecuteRequestH\x00R\x0eexecuteRequest\x12\x19\n" +
+	"\x04ping\x18d \x01(\v2\x05.PingR\x04ping\x12%\n" +
+	"\rauthorization\x18\xc8\x01 \x01(\tR\rauthorization\x12\x1a\n" +
+	"\bknown_id\x18\xd2\x01 \x01(\tR\aknownId\x12\x16\n" +
+	"\x06run_id\x18\xdc\x01 \x01(\tR\x05runIdB\t\n" +
+	"\apayload\"\xe1\x01\n" +
 	"\x0eSocketResponse\x12M\n" +
-	"\x10execute_response\x18\x01 \x01(\v2 .runme.runner.v2.ExecuteResponseH\x00R\x0fexecuteResponse\x12&\n" +
-	"\x06status\x18\xc8\x01 \x01(\v2\r.SocketStatusR\x06statusB\t\n" +
+	"\x10execute_response\x18\x01 \x01(\v2 .runme.runner.v2.ExecuteResponseH\x00R\x0fexecuteResponse\x12\x19\n" +
+	"\x04pong\x18d \x01(\v2\x05.PongR\x04pong\x12&\n" +
+	"\x06status\x18\xc8\x01 \x01(\v2\r.SocketStatusR\x06status\x12\x1a\n" +
+	"\bknown_id\x18\xd2\x01 \x01(\tR\aknownId\x12\x16\n" +
+	"\x06run_id\x18\xdc\x01 \x01(\tR\x05runIdB\t\n" +
 	"\apayloadBDB\fSocketsProtoP\x01Z2github.com/jlewi/cloud-assistant/protos/gen/cassieb\x06proto3"
 
 var (
@@ -259,25 +421,29 @@ func file_cassie_sockets_proto_rawDescGZIP() []byte {
 	return file_cassie_sockets_proto_rawDescData
 }
 
-var file_cassie_sockets_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_cassie_sockets_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_cassie_sockets_proto_goTypes = []any{
 	(*SocketStatus)(nil),       // 0: SocketStatus
-	(*SocketRequest)(nil),      // 1: SocketRequest
-	(*SocketResponse)(nil),     // 2: SocketResponse
-	(code.Code)(0),             // 3: google.rpc.Code
-	(*v2.ExecuteRequest)(nil),  // 4: runme.runner.v2.ExecuteRequest
-	(*v2.ExecuteResponse)(nil), // 5: runme.runner.v2.ExecuteResponse
+	(*Ping)(nil),               // 1: Ping
+	(*Pong)(nil),               // 2: Pong
+	(*SocketRequest)(nil),      // 3: SocketRequest
+	(*SocketResponse)(nil),     // 4: SocketResponse
+	(code.Code)(0),             // 5: google.rpc.Code
+	(*v2.ExecuteRequest)(nil),  // 6: runme.runner.v2.ExecuteRequest
+	(*v2.ExecuteResponse)(nil), // 7: runme.runner.v2.ExecuteResponse
 }
 var file_cassie_sockets_proto_depIdxs = []int32{
-	3, // 0: SocketStatus.code:type_name -> google.rpc.Code
-	4, // 1: SocketRequest.execute_request:type_name -> runme.runner.v2.ExecuteRequest
-	5, // 2: SocketResponse.execute_response:type_name -> runme.runner.v2.ExecuteResponse
-	0, // 3: SocketResponse.status:type_name -> SocketStatus
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	5, // 0: SocketStatus.code:type_name -> google.rpc.Code
+	6, // 1: SocketRequest.execute_request:type_name -> runme.runner.v2.ExecuteRequest
+	1, // 2: SocketRequest.ping:type_name -> Ping
+	7, // 3: SocketResponse.execute_response:type_name -> runme.runner.v2.ExecuteResponse
+	2, // 4: SocketResponse.pong:type_name -> Pong
+	0, // 5: SocketResponse.status:type_name -> SocketStatus
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_cassie_sockets_proto_init() }
@@ -285,10 +451,10 @@ func file_cassie_sockets_proto_init() {
 	if File_cassie_sockets_proto != nil {
 		return
 	}
-	file_cassie_sockets_proto_msgTypes[1].OneofWrappers = []any{
+	file_cassie_sockets_proto_msgTypes[3].OneofWrappers = []any{
 		(*SocketRequest_ExecuteRequest)(nil),
 	}
-	file_cassie_sockets_proto_msgTypes[2].OneofWrappers = []any{
+	file_cassie_sockets_proto_msgTypes[4].OneofWrappers = []any{
 		(*SocketResponse_ExecuteResponse)(nil),
 	}
 	type x struct{}
@@ -297,7 +463,7 @@ func file_cassie_sockets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cassie_sockets_proto_rawDesc), len(file_cassie_sockets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

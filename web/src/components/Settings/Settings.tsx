@@ -1,7 +1,15 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Box, Button, Callout, Flex, Text, TextArea } from '@radix-ui/themes'
+import {
+  Box,
+  Button,
+  Callout,
+  Flex,
+  Switch,
+  Text,
+  TextArea,
+} from '@radix-ui/themes'
 
 import { useSettings } from '../../contexts/SettingsContext'
 
@@ -11,12 +19,17 @@ export default function Settings() {
     useSettings()
   const [saveSettingsPending, setSaveSettingsPending] = useState(false)
   const [endpoint, setEndpoint] = useState(settings.agentEndpoint)
-  const [runnerEndpoint, setRunnerEndpoint] = useState(settings.runnerEndpoint)
+  const [runnerEndpoint, setRunnerEndpoint] = useState(settings.webApp.runner)
+  const [invertOrder, setInvertOrder] = useState(settings.webApp.invertedOrder)
 
   const handleSave = () => {
     updateSettings({
       agentEndpoint: endpoint,
-      runnerEndpoint: runnerEndpoint,
+      webApp: {
+        runner: runnerEndpoint,
+        reconnect: settings.webApp.reconnect,
+        invertedOrder: invertOrder,
+      },
     })
     setSaveSettingsPending(true)
   }
@@ -33,12 +46,21 @@ export default function Settings() {
 
   const handleRevert = () => {
     setEndpoint(defaultSettings.agentEndpoint)
-    setRunnerEndpoint(defaultSettings.runnerEndpoint)
+    setRunnerEndpoint(defaultSettings.webApp.runner)
+    setInvertOrder(defaultSettings.webApp.invertedOrder)
   }
+
+  const runnerErrorMessage = useMemo(() => {
+    if (!(runnerError instanceof Error)) {
+      return undefined
+    }
+    return runnerError.message
+  }, [runnerError])
 
   const isChanged =
     endpoint !== settings.agentEndpoint ||
-    runnerEndpoint !== settings.runnerEndpoint
+    runnerEndpoint !== settings.webApp.runner ||
+    invertOrder !== settings.webApp.invertedOrder
 
   return (
     <Box className="w-full mx-auto">
@@ -78,7 +100,8 @@ export default function Settings() {
             {runnerError && (
               <Callout.Root color="red">
                 <Callout.Text className="font-bold">
-                  Runner error: {runnerError.message}
+                  Runner error
+                  {runnerErrorMessage ? ': ' + runnerErrorMessage : ''}
                 </Callout.Text>
               </Callout.Root>
             )}
@@ -93,6 +116,21 @@ export default function Settings() {
             <Text size="2" color="gray">
               Revert will reset endpoints to the default values, including
               protocol http(s), based on the current page.
+            </Text>
+          </Flex>
+          <Flex direction="column" gap="2">
+            <Text size="3" weight="bold">
+              User Experience Mode
+            </Text>
+            <Text as="label" size="2">
+              <Flex gap="2">
+                Document Mode
+                <Switch
+                  checked={invertOrder}
+                  onCheckedChange={setInvertOrder}
+                />
+                Console Mode
+              </Flex>
             </Text>
           </Flex>
         </Flex>
